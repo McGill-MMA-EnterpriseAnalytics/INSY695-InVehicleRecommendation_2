@@ -1,0 +1,1034 @@
+<!--
+    ~ ----------------------------------------------------------------------------
+    ~ Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+    ~
+    ~ This file is part of Deepchecks.
+    ~ Deepchecks is distributed under the terms of the GNU Affero General
+    ~ Public License (version 3 or later).
+    ~ You should have received a copy of the GNU Affero General Public License
+    ~ along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+    ~ ----------------------------------------------------------------------------
+    ~
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Suite Output</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        div.nbinput.container div.prompt *,
+        div.nboutput.container div.prompt *,
+        div.nbinput.container div.input_area pre,
+        div.nboutput.container div.output_area pre,
+        div.nbinput.container div.input_area .highlight,
+        div.nboutput.container div.output_area .highlight {
+            border: none;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        div.nbinput.container > div[class*=highlight],
+        div.nboutput.container > div[class*=highlight] {
+            margin: 0;
+        }
+
+        div.nbinput.container div.prompt *,
+        div.nboutput.container div.prompt * {
+            background: none;
+        }
+
+        div.nboutput.container div.output_area .highlight,
+        div.nboutput.container div.output_area pre {
+            background: unset;
+        }
+
+        div.nboutput.container div.output_area div.highlight {
+            color: unset;  /* override Pygments text color */
+        }
+
+        /* avoid gaps between output lines */
+        div.nboutput.container div[class*=highlight] pre {
+            line-height: normal;
+        }
+
+        /* input/output containers */
+        div.nbinput.container,
+        div.nboutput.container {
+            display: -webkit-flex;
+            display: flex;
+            align-items: flex-start;
+            margin: 0;
+            width: 100%;
+        }
+        @media (max-width: 540px) {
+            div.nbinput.container,
+            div.nboutput.container {
+                flex-direction: column;
+            }
+        }
+
+        /* input container */
+        div.nbinput.container {
+            padding-top: 5px;
+        }
+
+        /* last container */
+        div.nblast.container {
+            padding-bottom: 5px;
+        }
+
+        /* input prompt */
+        div.nbinput.container div.prompt pre {
+            color: #307FC1;
+        }
+
+        /* output prompt */
+        div.nboutput.container div.prompt pre {
+            color: #BF5B3D;
+        }
+
+        /* all prompts */
+        div.nbinput.container div.prompt,
+        div.nboutput.container div.prompt {
+            width: 4.5ex;
+            padding-top: 5px;
+            position: relative;
+            user-select: none;
+        }
+
+        div.nbinput.container div.prompt > div,
+        div.nboutput.container div.prompt > div {
+            position: absolute;
+            right: 0;
+            margin-right: 0.3ex;
+        }
+
+        @media (max-width: 540px) {
+            div.nbinput.container div.prompt,
+            div.nboutput.container div.prompt {
+                width: unset;
+                text-align: left;
+                padding: 0.4em;
+            }
+            div.nboutput.container div.prompt.empty {
+                padding: 0;
+            }
+
+            div.nbinput.container div.prompt > div,
+            div.nboutput.container div.prompt > div {
+                position: unset;
+            }
+        }
+
+        /* disable scrollbars on prompts */
+        div.nbinput.container div.prompt pre,
+        div.nboutput.container div.prompt pre {
+            overflow: hidden;
+        }
+
+        /* input/output area */
+        div.nbinput.container div.input_area,
+        div.nboutput.container div.output_area {
+            -webkit-flex: 1;
+            flex: 1;
+            overflow: auto;
+        }
+        @media (max-width: 540px) {
+            div.nbinput.container div.input_area,
+            div.nboutput.container div.output_area {
+                width: 100%;
+            }
+        }
+
+        /* input area */
+        div.nbinput.container div.input_area {
+            border: 1px solid #e0e0e0;
+            border-radius: 2px;
+            /*background: #f5f5f5;*/
+        }
+
+        /* override MathJax center alignment in output cells */
+        div.nboutput.container div[class*=MathJax] {
+            text-align: left !important;
+        }
+
+        /* override sphinx.ext.imgmath center alignment in output cells */
+        div.nboutput.container div.math p {
+            text-align: left;
+        }
+
+        /* standard error */
+        div.nboutput.container div.output_area.stderr {
+            background: #fdd;
+        }
+
+        /* ANSI colors */
+        .ansi-black-fg { color: #3E424D; }
+        .ansi-black-bg { background-color: #3E424D; }
+        .ansi-black-intense-fg { color: #282C36; }
+        .ansi-black-intense-bg { background-color: #282C36; }
+        .ansi-red-fg { color: #E75C58; }
+        .ansi-red-bg { background-color: #E75C58; }
+        .ansi-red-intense-fg { color: #B22B31; }
+        .ansi-red-intense-bg { background-color: #B22B31; }
+        .ansi-green-fg { color: #00A250; }
+        .ansi-green-bg { background-color: #00A250; }
+        .ansi-green-intense-fg { color: #007427; }
+        .ansi-green-intense-bg { background-color: #007427; }
+        .ansi-yellow-fg { color: #DDB62B; }
+        .ansi-yellow-bg { background-color: #DDB62B; }
+        .ansi-yellow-intense-fg { color: #B27D12; }
+        .ansi-yellow-intense-bg { background-color: #B27D12; }
+        .ansi-blue-fg { color: #208FFB; }
+        .ansi-blue-bg { background-color: #208FFB; }
+        .ansi-blue-intense-fg { color: #0065CA; }
+        .ansi-blue-intense-bg { background-color: #0065CA; }
+        .ansi-magenta-fg { color: #D160C4; }
+        .ansi-magenta-bg { background-color: #D160C4; }
+        .ansi-magenta-intense-fg { color: #A03196; }
+        .ansi-magenta-intense-bg { background-color: #A03196; }
+        .ansi-cyan-fg { color: #60C6C8; }
+        .ansi-cyan-bg { background-color: #60C6C8; }
+        .ansi-cyan-intense-fg { color: #258F8F; }
+        .ansi-cyan-intense-bg { background-color: #258F8F; }
+        .ansi-white-fg { color: #C5C1B4; }
+        .ansi-white-bg { background-color: #C5C1B4; }
+        .ansi-white-intense-fg { color: #A1A6B2; }
+        .ansi-white-intense-bg { background-color: #A1A6B2; }
+
+        .ansi-default-inverse-fg { color: #FFFFFF; }
+        .ansi-default-inverse-bg { background-color: #000000; }
+
+        .ansi-bold { font-weight: bold; }
+        .ansi-underline { text-decoration: underline; }
+
+
+        div.nbinput.container div.input_area div[class*=highlight] > pre,
+        div.nboutput.container div.output_area div[class*=highlight] > pre,
+        div.nboutput.container div.output_area div[class*=highlight].math,
+        div.nboutput.container div.output_area.rendered_html,
+        div.nboutput.container div.output_area > div.output_javascript,
+        div.nboutput.container div.output_area:not(.rendered_html) > img{
+            padding: 5px;
+            margin: 0;
+        }
+
+        /* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+        div.nbinput.container div.input_area > div[class^='highlight'],
+        div.nboutput.container div.output_area > div[class^='highlight']{
+            overflow-y: hidden;
+        }
+
+        /* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+        .prompt .copybtn {
+            display: none;
+        }
+
+        /* Some additional styling taken form the Jupyter notebook CSS */
+        div.rendered_html table {
+        border: none;
+        border-collapse: collapse;
+        border-spacing: 0;
+        color: black;
+        font-size: 12px;
+        table-layout: fixed;
+        }
+        div.rendered_html thead {
+        border-bottom: 1px solid black;
+        vertical-align: bottom;
+        }
+        div.rendered_html tr,
+        div.rendered_html th,
+        div.rendered_html td {
+        text-align: right;
+        vertical-align: middle;
+        padding: 0.5em 0.5em;
+        line-height: normal;
+        white-space: normal;
+        max-width: none;
+        border: none;
+        }
+        div.rendered_html th {
+        font-weight: bold;
+        }
+        div.rendered_html tbody tr:nth-child(odd) {
+        background: #f5f5f5;
+        }
+        div.rendered_html tbody tr:hover {
+        background: rgba(66, 165, 245, 0.2);
+        }
+    </style>
+    <script>
+        (!window.navigator.onLine ? alert('needs internet connection') : '');
+    </script>
+</head>
+<body>
+    
+
+<!-- Load require.js. Delete this if your page already loads require.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js" crossorigin="anonymous"></script>
+
+<script type="application/vnd.jupyter.widget-state+json">
+{
+  "version_major": 2,
+  "version_minor": 0,
+  "state": {
+    "e02322c472ad415595b9e9781dcf9ae6": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_14f7d6de02ce4597be10be0e573e4255",
+          "IPY_MODEL_f73ba409fa674bc48e92a66d04f256cd",
+          "IPY_MODEL_9e0f842a68cb4cebb64c86a284c7e9da"
+        ],
+        "layout": "IPY_MODEL_5c4845bad02040008b66a4ec97c842e1"
+      }
+    },
+    "14f7d6de02ce4597be10be0e573e4255": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_4d3201b1bfa24b4db44dd8f196f4b9fc",
+        "style": "IPY_MODEL_e362565b2d1a4999b6804c05de6319dd",
+        "value": "\n        <h1 id=\"summary_K90CD\">Full Suite</h1>\n        <p>\n            The suite is composed of various checks such as: Boosting Overfit, Model Info, Whole Dataset Drift, etc...<br>\n            Each check may contain conditions (which will result in pass / fail / warning / error\n            , represented by \n    <span style=\"color: green;display:inline-block\">\u2713</span> /\n    <span style=\"color: red;display:inline-block\">\u2716</span> /\n    <span style=\"color: orange;font-weight:bold;display:inline-block\">!</span> /\n    <span style=\"color: firebrick;font-weight:bold;display:inline-block\">\u2048</span>\n    ) as well as other outputs such as plots or tables.<br>\n            Suites, checks and conditions can all be modified. Read more about\n            <a href=https://docs.deepchecks.com/en/stable/examples/guides/create_a_custom_suite.html?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link target=\"_blank\">custom suites</a>.\n        </p>\n        "
+      }
+    },
+    "4d3201b1bfa24b4db44dd8f196f4b9fc": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "e362565b2d1a4999b6804c05de6319dd": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "f73ba409fa674bc48e92a66d04f256cd": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_336f3101ae6244418b0ea1a3602a84d5",
+        "style": "IPY_MODEL_258dc227d8cf493a9bec8ea7e5ae399b",
+        "value": "<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {flex: 0 1 auto}</style>"
+      }
+    },
+    "336f3101ae6244418b0ea1a3602a84d5": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "258dc227d8cf493a9bec8ea7e5ae399b": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "9e0f842a68cb4cebb64c86a284c7e9da": {
+      "model_name": "TabModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "_titles": {
+          "0": "Checks With Conditions",
+          "1": "Checks Without Conditions",
+          "2": "Checks Without Output"
+        },
+        "children": [
+          "IPY_MODEL_5fdf6fe1add143eebe4c20d85b50a613",
+          "IPY_MODEL_7ce3079104954028bfd92d08d78953b1",
+          "IPY_MODEL_c3742ee2758140f9abf5ad192918ddf3"
+        ],
+        "layout": "IPY_MODEL_e6529c8b733e4df0a40710429f881532"
+      }
+    },
+    "5fdf6fe1add143eebe4c20d85b50a613": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [
+          "rendered_html",
+          "jp-RenderedHTMLCommon",
+          "jp-RenderedHTML",
+          "jp-OutputArea-output"
+        ],
+        "children": [
+          "IPY_MODEL_add445129a594480b0eaeb2080fcd5d3",
+          "IPY_MODEL_5cf65279fa754b7b9055917365ee2fa1",
+          "IPY_MODEL_d048b562363747b68569d90ea32af23f",
+          "IPY_MODEL_42a56f8780af4c7dadf3c30e1bea3e83",
+          "IPY_MODEL_fa7d9d2429a44954bf95fc54d74a051f",
+          "IPY_MODEL_bf6992351017464188b193736ff527b6",
+          "IPY_MODEL_bd63b88d95c14c0db79b26b942926035",
+          "IPY_MODEL_66378533a63448da952dde5db5c4a1ea",
+          "IPY_MODEL_521e1fad61974f34909a83a9cfa10661",
+          "IPY_MODEL_31785b4b445244fea83e898fe94204a8"
+        ],
+        "layout": "IPY_MODEL_84b6c7df243e42b2b317ec0688c385be"
+      }
+    },
+    "add445129a594480b0eaeb2080fcd5d3": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_d74d6483878a4ba1b3687bbc984556f6",
+        "style": "IPY_MODEL_4f2bb59ef3c54514bb236f8993b0e754",
+        "value": "<h2>Conditions Summary</h2>"
+      }
+    },
+    "d74d6483878a4ba1b3687bbc984556f6": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "4f2bb59ef3c54514bb236f8993b0e754": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "5cf65279fa754b7b9055917365ee2fa1": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [
+          "rendered_html",
+          "jp-RenderedHTMLCommon",
+          "jp-RenderedHTML",
+          "jp-OutputArea-output"
+        ],
+        "children": [
+          "IPY_MODEL_8335656ad0ad4127b4c5ee9985fb0077"
+        ],
+        "layout": "IPY_MODEL_79962cb37d1946a3aa3e7170b9df716f"
+      }
+    },
+    "8335656ad0ad4127b4c5ee9985fb0077": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_2c68db9b9bcf413ab99b8ff75573fb61",
+        "style": "IPY_MODEL_9beb2b2e7fd6426aaabcd27170004c79",
+        "value": "<style type=\"text/css\">\n#T_4e8a7_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_4e8a7_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_4e8a7_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_4e8a7_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_4e8a7_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_4e8a7_\">\n  <thead>\n    <tr>\n      <th class=\"col_heading level0 col0\" >Status</th>\n      <th class=\"col_heading level0 col1\" >Check</th>\n      <th class=\"col_heading level0 col2\" >Condition</th>\n      <th class=\"col_heading level0 col3\" >More Info</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td id=\"T_4e8a7_row0_col0\" class=\"data row0 col0\" ><div style=\"color: red;text-align: center\">\u2716</div></td>\n      <td id=\"T_4e8a7_row0_col1\" class=\"data row0 col1\" ><a href=#SingleValueinColumn-TrainDataset_K90CD>Single Value in Column - Train Dataset</a></td>\n      <td id=\"T_4e8a7_row0_col2\" class=\"data row0 col2\" >Does not contain only a single value</td>\n      <td id=\"T_4e8a7_row0_col3\" class=\"data row0 col3\" >Found columns with a single value: ['toCoupon_GEQ5min', 'Snow_cm', 'Rain_mm', 'MinTemp', 'MaxTemp']</td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row1_col0\" class=\"data row1 col0\" ><div style=\"color: red;text-align: center\">\u2716</div></td>\n      <td id=\"T_4e8a7_row1_col1\" class=\"data row1 col1\" ><a href=#SingleValueinColumn-TestDataset_K90CD>Single Value in Column - Test Dataset</a></td>\n      <td id=\"T_4e8a7_row1_col2\" class=\"data row1 col2\" >Does not contain only a single value</td>\n      <td id=\"T_4e8a7_row1_col3\" class=\"data row1 col3\" >Found columns with a single value: ['toCoupon_GEQ5min', 'Snow_cm', 'Rain_mm', 'MinTemp', 'MaxTemp']</td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row2_col0\" class=\"data row2 col0\" ><div style=\"color: orange;text-align: center;font-weight:bold\">!</div></td>\n      <td id=\"T_4e8a7_row2_col1\" class=\"data row2 col1\" ><a href=#DataDuplicates-TrainDataset_K90CD>Data Duplicates - Train Dataset</a></td>\n      <td id=\"T_4e8a7_row2_col2\" class=\"data row2 col2\" >Duplicate data ratio is not greater than 0%</td>\n      <td id=\"T_4e8a7_row2_col3\" class=\"data row2 col3\" >Found 0.02% duplicate data</td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row3_col0\" class=\"data row3 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row3_col1\" class=\"data row3 col1\" ><a href=#DatasetsSizeComparison_K90CD>Datasets Size Comparison</a></td>\n      <td id=\"T_4e8a7_row3_col2\" class=\"data row3 col2\" >Test-Train size ratio is not smaller than 0.01</td>\n      <td id=\"T_4e8a7_row3_col3\" class=\"data row3 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row4_col0\" class=\"data row4 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row4_col1\" class=\"data row4 col1\" >Dominant Frequency Change</td>\n      <td id=\"T_4e8a7_row4_col2\" class=\"data row4 col2\" >Change in ratio of dominant value in data is not greater than 25%</td>\n      <td id=\"T_4e8a7_row4_col3\" class=\"data row4 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row5_col0\" class=\"data row5 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row5_col1\" class=\"data row5 col1\" >String Length Out Of Bounds - Test Dataset</td>\n      <td id=\"T_4e8a7_row5_col2\" class=\"data row5 col2\" >Ratio of outliers not greater than 0% string length outliers</td>\n      <td id=\"T_4e8a7_row5_col3\" class=\"data row5 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row6_col0\" class=\"data row6 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row6_col1\" class=\"data row6 col1\" >String Length Out Of Bounds - Train Dataset</td>\n      <td id=\"T_4e8a7_row6_col2\" class=\"data row6 col2\" >Ratio of outliers not greater than 0% string length outliers</td>\n      <td id=\"T_4e8a7_row6_col3\" class=\"data row6 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row7_col0\" class=\"data row7 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row7_col1\" class=\"data row7 col1\" >Data Duplicates - Test Dataset</td>\n      <td id=\"T_4e8a7_row7_col2\" class=\"data row7 col2\" >Duplicate data ratio is not greater than 0%</td>\n      <td id=\"T_4e8a7_row7_col3\" class=\"data row7 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row8_col0\" class=\"data row8 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row8_col1\" class=\"data row8 col1\" >String Mismatch - Test Dataset</td>\n      <td id=\"T_4e8a7_row8_col2\" class=\"data row8 col2\" >No string variants</td>\n      <td id=\"T_4e8a7_row8_col3\" class=\"data row8 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row9_col0\" class=\"data row9 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row9_col1\" class=\"data row9 col1\" >String Mismatch - Train Dataset</td>\n      <td id=\"T_4e8a7_row9_col2\" class=\"data row9 col2\" >No string variants</td>\n      <td id=\"T_4e8a7_row9_col3\" class=\"data row9 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row10_col0\" class=\"data row10 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row10_col1\" class=\"data row10 col1\" >Mixed Data Types - Train Dataset</td>\n      <td id=\"T_4e8a7_row10_col2\" class=\"data row10 col2\" >Rare data types in column are either more than 10% or less than 1% of the data</td>\n      <td id=\"T_4e8a7_row10_col3\" class=\"data row10 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row11_col0\" class=\"data row11 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row11_col1\" class=\"data row11 col1\" >Special Characters - Train Dataset</td>\n      <td id=\"T_4e8a7_row11_col2\" class=\"data row11 col2\" >Ratio of entirely special character samples not greater than 0.1%</td>\n      <td id=\"T_4e8a7_row11_col3\" class=\"data row11 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row12_col0\" class=\"data row12 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row12_col1\" class=\"data row12 col1\" >Mixed Nulls - Test Dataset</td>\n      <td id=\"T_4e8a7_row12_col2\" class=\"data row12 col2\" >Not more than 1 different null types</td>\n      <td id=\"T_4e8a7_row12_col3\" class=\"data row12 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row13_col0\" class=\"data row13 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row13_col1\" class=\"data row13 col1\" >Mixed Nulls - Train Dataset</td>\n      <td id=\"T_4e8a7_row13_col2\" class=\"data row13 col2\" >Not more than 1 different null types</td>\n      <td id=\"T_4e8a7_row13_col3\" class=\"data row13 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row14_col0\" class=\"data row14 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row14_col1\" class=\"data row14 col1\" >String Mismatch Comparison</td>\n      <td id=\"T_4e8a7_row14_col2\" class=\"data row14 col2\" >No new variants allowed in test data</td>\n      <td id=\"T_4e8a7_row14_col3\" class=\"data row14 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row15_col0\" class=\"data row15 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row15_col1\" class=\"data row15 col1\" >Category Mismatch Train Test</td>\n      <td id=\"T_4e8a7_row15_col2\" class=\"data row15 col2\" >Ratio of samples with a new category is not greater than 0%</td>\n      <td id=\"T_4e8a7_row15_col3\" class=\"data row15 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row16_col0\" class=\"data row16 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row16_col1\" class=\"data row16 col1\" >Mixed Data Types - Test Dataset</td>\n      <td id=\"T_4e8a7_row16_col2\" class=\"data row16 col2\" >Rare data types in column are either more than 10% or less than 1% of the data</td>\n      <td id=\"T_4e8a7_row16_col3\" class=\"data row16 col3\" ></td>\n    </tr>\n    <tr>\n      <td id=\"T_4e8a7_row17_col0\" class=\"data row17 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_4e8a7_row17_col1\" class=\"data row17 col1\" >Special Characters - Test Dataset</td>\n      <td id=\"T_4e8a7_row17_col2\" class=\"data row17 col2\" >Ratio of entirely special character samples not greater than 0.1%</td>\n      <td id=\"T_4e8a7_row17_col3\" class=\"data row17 col3\" ></td>\n    </tr>\n  </tbody>\n</table>\n"
+      }
+    },
+    "2c68db9b9bcf413ab99b8ff75573fb61": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "9beb2b2e7fd6426aaabcd27170004c79": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "79962cb37d1946a3aa3e7170b9df716f": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "d048b562363747b68569d90ea32af23f": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_3043805c7dcc458fbc38edbaf390369a",
+        "style": "IPY_MODEL_0a147a4ef12e48a0855154aeaccd14b6",
+        "value": "<h2>Check With Conditions Output</h2>"
+      }
+    },
+    "3043805c7dcc458fbc38edbaf390369a": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "0a147a4ef12e48a0855154aeaccd14b6": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "42a56f8780af4c7dadf3c30e1bea3e83": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_2c15a60efb174579b85472067881c67a"
+        ],
+        "layout": "IPY_MODEL_f21fffc508e34853a9e0b1112ba23ea7"
+      }
+    },
+    "2c15a60efb174579b85472067881c67a": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_32d088b6a0c149a7bf228e1e0b112034",
+        "style": "IPY_MODEL_047fe37dfb1147279238ff44f7b15d24",
+        "value": "<h4 id=\"SingleValueinColumn-TrainDataset_K90CD\">Single Value in Column - Train Dataset</h4><p>Check if there are columns which have only a single unique value in all rows. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/integrity/examples/plot_is_single_value.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></p><h5>Conditions Summary</h5><style type=\"text/css\">\n#T_9e8cc_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_9e8cc_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_9e8cc_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_9e8cc_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_9e8cc_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_9e8cc_\">\n  <thead>\n    <tr>\n      <th class=\"col_heading level0 col0\" >Status</th>\n      <th class=\"col_heading level0 col1\" >Condition</th>\n      <th class=\"col_heading level0 col2\" >More Info</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td id=\"T_9e8cc_row0_col0\" class=\"data row0 col0\" ><div style=\"color: red;text-align: center\">\u2716</div></td>\n      <td id=\"T_9e8cc_row0_col1\" class=\"data row0 col1\" >Does not contain only a single value</td>\n      <td id=\"T_9e8cc_row0_col2\" class=\"data row0 col2\" >Found columns with a single value: ['toCoupon_GEQ5min', 'Snow_cm', 'Rain_mm', 'MinTemp', 'MaxTemp']</td>\n    </tr>\n  </tbody>\n</table>\n<h5>Additional Outputs</h5><div>The following columns have only one unique value</div><style type=\"text/css\">\n#T_6a515_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_6a515_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_6a515_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_6a515_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_6a515_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_6a515_\">\n  <thead>\n    <tr>\n      <th class=\"blank level0\" >&nbsp;</th>\n      <th class=\"col_heading level0 col0\" >toCoupon_GEQ5min</th>\n      <th class=\"col_heading level0 col1\" >Snow_cm</th>\n      <th class=\"col_heading level0 col2\" >Rain_mm</th>\n      <th class=\"col_heading level0 col3\" >MinTemp</th>\n      <th class=\"col_heading level0 col4\" >MaxTemp</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th id=\"T_6a515_level0_row0\" class=\"row_heading level0 row0\" >Single unique value</th>\n      <td id=\"T_6a515_row0_col0\" class=\"data row0 col0\" >1</td>\n      <td id=\"T_6a515_row0_col1\" class=\"data row0 col1\" >0.00</td>\n      <td id=\"T_6a515_row0_col2\" class=\"data row0 col2\" >0.00</td>\n      <td id=\"T_6a515_row0_col3\" class=\"data row0 col3\" >273.33</td>\n      <td id=\"T_6a515_row0_col4\" class=\"data row0 col4\" >282.44</td>\n    </tr>\n  </tbody>\n</table>\n<br><a href=\"#summary_K90CD\" style=\"font-size: 14px\">Go to top</a>"
+      }
+    },
+    "32d088b6a0c149a7bf228e1e0b112034": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "047fe37dfb1147279238ff44f7b15d24": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "f21fffc508e34853a9e0b1112ba23ea7": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "fa7d9d2429a44954bf95fc54d74a051f": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_b0f6e0fe2ca94eb6bf75ad153d78c076",
+        "style": "IPY_MODEL_acc62c5c69b04a4c90108317b42cd6ed",
+        "value": "<hr style=\"background-color: #eee;border: 0 none;color: #eee;height: 4px;\">"
+      }
+    },
+    "b0f6e0fe2ca94eb6bf75ad153d78c076": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "acc62c5c69b04a4c90108317b42cd6ed": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "bf6992351017464188b193736ff527b6": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_8ebc6c0e6cd94c6382cae844b3bb460a"
+        ],
+        "layout": "IPY_MODEL_ec44d570f916489f9e8de964eac0b7dd"
+      }
+    },
+    "8ebc6c0e6cd94c6382cae844b3bb460a": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_bc9a53ebd14649188da45edf6175d2b4",
+        "style": "IPY_MODEL_bc0877fcf9734c9d963f32bf6272301b",
+        "value": "<h4 id=\"SingleValueinColumn-TestDataset_K90CD\">Single Value in Column - Test Dataset</h4><p>Check if there are columns which have only a single unique value in all rows. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/integrity/examples/plot_is_single_value.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></p><h5>Conditions Summary</h5><style type=\"text/css\">\n#T_c6647_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_c6647_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_c6647_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_c6647_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_c6647_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_c6647_\">\n  <thead>\n    <tr>\n      <th class=\"col_heading level0 col0\" >Status</th>\n      <th class=\"col_heading level0 col1\" >Condition</th>\n      <th class=\"col_heading level0 col2\" >More Info</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td id=\"T_c6647_row0_col0\" class=\"data row0 col0\" ><div style=\"color: red;text-align: center\">\u2716</div></td>\n      <td id=\"T_c6647_row0_col1\" class=\"data row0 col1\" >Does not contain only a single value</td>\n      <td id=\"T_c6647_row0_col2\" class=\"data row0 col2\" >Found columns with a single value: ['toCoupon_GEQ5min', 'Snow_cm', 'Rain_mm', 'MinTemp', 'MaxTemp']</td>\n    </tr>\n  </tbody>\n</table>\n<h5>Additional Outputs</h5><div>The following columns have only one unique value</div><style type=\"text/css\">\n#T_398b0_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_398b0_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_398b0_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_398b0_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_398b0_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_398b0_\">\n  <thead>\n    <tr>\n      <th class=\"blank level0\" >&nbsp;</th>\n      <th class=\"col_heading level0 col0\" >toCoupon_GEQ5min</th>\n      <th class=\"col_heading level0 col1\" >Snow_cm</th>\n      <th class=\"col_heading level0 col2\" >Rain_mm</th>\n      <th class=\"col_heading level0 col3\" >MinTemp</th>\n      <th class=\"col_heading level0 col4\" >MaxTemp</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th id=\"T_398b0_level0_row0\" class=\"row_heading level0 row0\" >Single unique value</th>\n      <td id=\"T_398b0_row0_col0\" class=\"data row0 col0\" >1</td>\n      <td id=\"T_398b0_row0_col1\" class=\"data row0 col1\" >0.00</td>\n      <td id=\"T_398b0_row0_col2\" class=\"data row0 col2\" >0.00</td>\n      <td id=\"T_398b0_row0_col3\" class=\"data row0 col3\" >273.33</td>\n      <td id=\"T_398b0_row0_col4\" class=\"data row0 col4\" >282.44</td>\n    </tr>\n  </tbody>\n</table>\n<br><a href=\"#summary_K90CD\" style=\"font-size: 14px\">Go to top</a>"
+      }
+    },
+    "bc9a53ebd14649188da45edf6175d2b4": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "bc0877fcf9734c9d963f32bf6272301b": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "ec44d570f916489f9e8de964eac0b7dd": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "bd63b88d95c14c0db79b26b942926035": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_111c54aa0bf9497aaa048f09f89cb18d",
+        "style": "IPY_MODEL_894657f032ed4ee2bafcc0c226deccd6",
+        "value": "<hr style=\"background-color: #eee;border: 0 none;color: #eee;height: 4px;\">"
+      }
+    },
+    "111c54aa0bf9497aaa048f09f89cb18d": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "894657f032ed4ee2bafcc0c226deccd6": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "66378533a63448da952dde5db5c4a1ea": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_c6850f4cc5fa4e5880df81d4ae9257d3"
+        ],
+        "layout": "IPY_MODEL_1392e35242ab4e7a8e1fd52840727c60"
+      }
+    },
+    "c6850f4cc5fa4e5880df81d4ae9257d3": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_6434b7e40d1d43a9bc92eccea13a3c8b",
+        "style": "IPY_MODEL_7febe3314e25424a8dd2be4c3d756de8",
+        "value": "<h4 id=\"DataDuplicates-TrainDataset_K90CD\">Data Duplicates - Train Dataset</h4><p>Checks for duplicate samples in the dataset. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/integrity/examples/plot_data_duplicates.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></p><h5>Conditions Summary</h5><style type=\"text/css\">\n#T_a83bf_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_a83bf_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_a83bf_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_a83bf_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_a83bf_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_a83bf_\">\n  <thead>\n    <tr>\n      <th class=\"col_heading level0 col0\" >Status</th>\n      <th class=\"col_heading level0 col1\" >Condition</th>\n      <th class=\"col_heading level0 col2\" >More Info</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td id=\"T_a83bf_row0_col0\" class=\"data row0 col0\" ><div style=\"color: orange;text-align: center;font-weight:bold\">!</div></td>\n      <td id=\"T_a83bf_row0_col1\" class=\"data row0 col1\" >Duplicate data ratio is not greater than 0%</td>\n      <td id=\"T_a83bf_row0_col2\" class=\"data row0 col2\" >Found 0.02% duplicate data</td>\n    </tr>\n  </tbody>\n</table>\n<h5>Additional Outputs</h5><div>0.02% of data samples are duplicates. </div><div>Each row in the table shows an example of duplicate data and the number of times it appears.</div><style type=\"text/css\">\n#T_72ae1_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_72ae1_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_72ae1_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_72ae1_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_72ae1_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_72ae1_\">\n  <thead>\n    <tr>\n      <th class=\"blank\" >&nbsp;</th>\n      <th class=\"blank level0\" >&nbsp;</th>\n      <th class=\"col_heading level0 col0\" >time</th>\n      <th class=\"col_heading level0 col1\" >expiration</th>\n      <th class=\"col_heading level0 col2\" >gender</th>\n      <th class=\"col_heading level0 col3\" >age</th>\n      <th class=\"col_heading level0 col4\" >has_children</th>\n      <th class=\"col_heading level0 col5\" >education</th>\n      <th class=\"col_heading level0 col6\" >Bar</th>\n      <th class=\"col_heading level0 col7\" >CoffeeHouse</th>\n      <th class=\"col_heading level0 col8\" >CarryAway</th>\n      <th class=\"col_heading level0 col9\" >RestaurantLessThan20</th>\n      <th class=\"col_heading level0 col10\" >Restaurant20To50</th>\n      <th class=\"col_heading level0 col11\" >toCoupon_GEQ5min</th>\n      <th class=\"col_heading level0 col12\" >toCoupon_GEQ15min</th>\n      <th class=\"col_heading level0 col13\" >toCoupon_GEQ25min</th>\n      <th class=\"col_heading level0 col14\" >direction_same</th>\n      <th class=\"col_heading level0 col15\" >direction_opp</th>\n      <th class=\"col_heading level0 col16\" >Snow_cm</th>\n      <th class=\"col_heading level0 col17\" >Rain_mm</th>\n      <th class=\"col_heading level0 col18\" >MinTemp</th>\n      <th class=\"col_heading level0 col19\" >MaxTemp</th>\n      <th class=\"col_heading level0 col20\" >income_ub</th>\n      <th class=\"col_heading level0 col21\" >income_lb</th>\n      <th class=\"col_heading level0 col22\" >destination_Home</th>\n      <th class=\"col_heading level0 col23\" >destination_No Urgent Place</th>\n      <th class=\"col_heading level0 col24\" >destination_Work</th>\n      <th class=\"col_heading level0 col25\" >passanger_Alone</th>\n      <th class=\"col_heading level0 col26\" >passanger_Friend(s)</th>\n      <th class=\"col_heading level0 col27\" >passanger_Kid(s)</th>\n      <th class=\"col_heading level0 col28\" >passanger_Partner</th>\n      <th class=\"col_heading level0 col29\" >coupon_Bar</th>\n      <th class=\"col_heading level0 col30\" >coupon_Carry out & Take away</th>\n      <th class=\"col_heading level0 col31\" >coupon_Coffee House</th>\n      <th class=\"col_heading level0 col32\" >coupon_Restaurant(20-50)</th>\n      <th class=\"col_heading level0 col33\" >coupon_Restaurant(<20)</th>\n      <th class=\"col_heading level0 col34\" >maritalStatus_Divorced</th>\n      <th class=\"col_heading level0 col35\" >maritalStatus_Married partner</th>\n      <th class=\"col_heading level0 col36\" >maritalStatus_Single</th>\n      <th class=\"col_heading level0 col37\" >maritalStatus_Unmarried partner</th>\n      <th class=\"col_heading level0 col38\" >maritalStatus_Widowed</th>\n      <th class=\"col_heading level0 col39\" >occupation_Architecture & Engineering</th>\n      <th class=\"col_heading level0 col40\" >occupation_Arts Design Entertainment Sports & Media</th>\n      <th class=\"col_heading level0 col41\" >occupation_Building & Grounds Cleaning & Maintenance</th>\n      <th class=\"col_heading level0 col42\" >occupation_Business & Financial</th>\n      <th class=\"col_heading level0 col43\" >occupation_Community & Social Services</th>\n      <th class=\"col_heading level0 col44\" >occupation_Computer & Mathematical</th>\n      <th class=\"col_heading level0 col45\" >occupation_Construction & Extraction</th>\n      <th class=\"col_heading level0 col46\" >occupation_Education&Training&Library</th>\n      <th class=\"col_heading level0 col47\" >occupation_Farming Fishing & Forestry</th>\n      <th class=\"col_heading level0 col48\" >occupation_Food Preparation & Serving Related</th>\n      <th class=\"col_heading level0 col49\" >occupation_Healthcare Practitioners & Technical</th>\n      <th class=\"col_heading level0 col50\" >occupation_Healthcare Support</th>\n      <th class=\"col_heading level0 col51\" >occupation_Installation Maintenance & Repair</th>\n      <th class=\"col_heading level0 col52\" >occupation_Legal</th>\n      <th class=\"col_heading level0 col53\" >occupation_Life Physical Social Science</th>\n      <th class=\"col_heading level0 col54\" >occupation_Management</th>\n      <th class=\"col_heading level0 col55\" >occupation_Office & Administrative Support</th>\n      <th class=\"col_heading level0 col56\" >occupation_Personal Care & Service</th>\n      <th class=\"col_heading level0 col57\" >occupation_Production Occupations</th>\n      <th class=\"col_heading level0 col58\" >occupation_Protective Service</th>\n      <th class=\"col_heading level0 col59\" >occupation_Retired</th>\n      <th class=\"col_heading level0 col60\" >occupation_Sales & Related</th>\n      <th class=\"col_heading level0 col61\" >occupation_Student</th>\n      <th class=\"col_heading level0 col62\" >occupation_Transportation & Material Moving</th>\n      <th class=\"col_heading level0 col63\" >occupation_Unemployed</th>\n    </tr>\n    <tr>\n      <th class=\"index_name level0\" >Instances</th>\n      <th class=\"index_name level1\" >Number of Duplicates</th>\n      <th class=\"blank col0\" >&nbsp;</th>\n      <th class=\"blank col1\" >&nbsp;</th>\n      <th class=\"blank col2\" >&nbsp;</th>\n      <th class=\"blank col3\" >&nbsp;</th>\n      <th class=\"blank col4\" >&nbsp;</th>\n      <th class=\"blank col5\" >&nbsp;</th>\n      <th class=\"blank col6\" >&nbsp;</th>\n      <th class=\"blank col7\" >&nbsp;</th>\n      <th class=\"blank col8\" >&nbsp;</th>\n      <th class=\"blank col9\" >&nbsp;</th>\n      <th class=\"blank col10\" >&nbsp;</th>\n      <th class=\"blank col11\" >&nbsp;</th>\n      <th class=\"blank col12\" >&nbsp;</th>\n      <th class=\"blank col13\" >&nbsp;</th>\n      <th class=\"blank col14\" >&nbsp;</th>\n      <th class=\"blank col15\" >&nbsp;</th>\n      <th class=\"blank col16\" >&nbsp;</th>\n      <th class=\"blank col17\" >&nbsp;</th>\n      <th class=\"blank col18\" >&nbsp;</th>\n      <th class=\"blank col19\" >&nbsp;</th>\n      <th class=\"blank col20\" >&nbsp;</th>\n      <th class=\"blank col21\" >&nbsp;</th>\n      <th class=\"blank col22\" >&nbsp;</th>\n      <th class=\"blank col23\" >&nbsp;</th>\n      <th class=\"blank col24\" >&nbsp;</th>\n      <th class=\"blank col25\" >&nbsp;</th>\n      <th class=\"blank col26\" >&nbsp;</th>\n      <th class=\"blank col27\" >&nbsp;</th>\n      <th class=\"blank col28\" >&nbsp;</th>\n      <th class=\"blank col29\" >&nbsp;</th>\n      <th class=\"blank col30\" >&nbsp;</th>\n      <th class=\"blank col31\" >&nbsp;</th>\n      <th class=\"blank col32\" >&nbsp;</th>\n      <th class=\"blank col33\" >&nbsp;</th>\n      <th class=\"blank col34\" >&nbsp;</th>\n      <th class=\"blank col35\" >&nbsp;</th>\n      <th class=\"blank col36\" >&nbsp;</th>\n      <th class=\"blank col37\" >&nbsp;</th>\n      <th class=\"blank col38\" >&nbsp;</th>\n      <th class=\"blank col39\" >&nbsp;</th>\n      <th class=\"blank col40\" >&nbsp;</th>\n      <th class=\"blank col41\" >&nbsp;</th>\n      <th class=\"blank col42\" >&nbsp;</th>\n      <th class=\"blank col43\" >&nbsp;</th>\n      <th class=\"blank col44\" >&nbsp;</th>\n      <th class=\"blank col45\" >&nbsp;</th>\n      <th class=\"blank col46\" >&nbsp;</th>\n      <th class=\"blank col47\" >&nbsp;</th>\n      <th class=\"blank col48\" >&nbsp;</th>\n      <th class=\"blank col49\" >&nbsp;</th>\n      <th class=\"blank col50\" >&nbsp;</th>\n      <th class=\"blank col51\" >&nbsp;</th>\n      <th class=\"blank col52\" >&nbsp;</th>\n      <th class=\"blank col53\" >&nbsp;</th>\n      <th class=\"blank col54\" >&nbsp;</th>\n      <th class=\"blank col55\" >&nbsp;</th>\n      <th class=\"blank col56\" >&nbsp;</th>\n      <th class=\"blank col57\" >&nbsp;</th>\n      <th class=\"blank col58\" >&nbsp;</th>\n      <th class=\"blank col59\" >&nbsp;</th>\n      <th class=\"blank col60\" >&nbsp;</th>\n      <th class=\"blank col61\" >&nbsp;</th>\n      <th class=\"blank col62\" >&nbsp;</th>\n      <th class=\"blank col63\" >&nbsp;</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th id=\"T_72ae1_level0_row0\" class=\"row_heading level0 row0\" >7671, 13893</th>\n      <th id=\"T_72ae1_level1_row0\" class=\"row_heading level1 row0\" >2</th>\n      <td id=\"T_72ae1_row0_col0\" class=\"data row0 col0\" >7</td>\n      <td id=\"T_72ae1_row0_col1\" class=\"data row0 col1\" >24</td>\n      <td id=\"T_72ae1_row0_col2\" class=\"data row0 col2\" >0</td>\n      <td id=\"T_72ae1_row0_col3\" class=\"data row0 col3\" >41</td>\n      <td id=\"T_72ae1_row0_col4\" class=\"data row0 col4\" >1</td>\n      <td id=\"T_72ae1_row0_col5\" class=\"data row0 col5\" >6</td>\n      <td id=\"T_72ae1_row0_col6\" class=\"data row0 col6\" >2.00</td>\n      <td id=\"T_72ae1_row0_col7\" class=\"data row0 col7\" >2.00</td>\n      <td id=\"T_72ae1_row0_col8\" class=\"data row0 col8\" >4.00</td>\n      <td id=\"T_72ae1_row0_col9\" class=\"data row0 col9\" >2.00</td>\n      <td id=\"T_72ae1_row0_col10\" class=\"data row0 col10\" >1.00</td>\n      <td id=\"T_72ae1_row0_col11\" class=\"data row0 col11\" >1</td>\n      <td id=\"T_72ae1_row0_col12\" class=\"data row0 col12\" >1</td>\n      <td id=\"T_72ae1_row0_col13\" class=\"data row0 col13\" >0</td>\n      <td id=\"T_72ae1_row0_col14\" class=\"data row0 col14\" >0</td>\n      <td id=\"T_72ae1_row0_col15\" class=\"data row0 col15\" >1</td>\n      <td id=\"T_72ae1_row0_col16\" class=\"data row0 col16\" >0.00</td>\n      <td id=\"T_72ae1_row0_col17\" class=\"data row0 col17\" >0.00</td>\n      <td id=\"T_72ae1_row0_col18\" class=\"data row0 col18\" >273.33</td>\n      <td id=\"T_72ae1_row0_col19\" class=\"data row0 col19\" >282.44</td>\n      <td id=\"T_72ae1_row0_col20\" class=\"data row0 col20\" >24999</td>\n      <td id=\"T_72ae1_row0_col21\" class=\"data row0 col21\" >12500</td>\n      <td id=\"T_72ae1_row0_col22\" class=\"data row0 col22\" >0</td>\n      <td id=\"T_72ae1_row0_col23\" class=\"data row0 col23\" >0</td>\n      <td id=\"T_72ae1_row0_col24\" class=\"data row0 col24\" >1</td>\n      <td id=\"T_72ae1_row0_col25\" class=\"data row0 col25\" >1</td>\n      <td id=\"T_72ae1_row0_col26\" class=\"data row0 col26\" >0</td>\n      <td id=\"T_72ae1_row0_col27\" class=\"data row0 col27\" >0</td>\n      <td id=\"T_72ae1_row0_col28\" class=\"data row0 col28\" >0</td>\n      <td id=\"T_72ae1_row0_col29\" class=\"data row0 col29\" >0</td>\n      <td id=\"T_72ae1_row0_col30\" class=\"data row0 col30\" >1</td>\n      <td id=\"T_72ae1_row0_col31\" class=\"data row0 col31\" >0</td>\n      <td id=\"T_72ae1_row0_col32\" class=\"data row0 col32\" >0</td>\n      <td id=\"T_72ae1_row0_col33\" class=\"data row0 col33\" >0</td>\n      <td id=\"T_72ae1_row0_col34\" class=\"data row0 col34\" >0</td>\n      <td id=\"T_72ae1_row0_col35\" class=\"data row0 col35\" >1</td>\n      <td id=\"T_72ae1_row0_col36\" class=\"data row0 col36\" >0</td>\n      <td id=\"T_72ae1_row0_col37\" class=\"data row0 col37\" >0</td>\n      <td id=\"T_72ae1_row0_col38\" class=\"data row0 col38\" >0</td>\n      <td id=\"T_72ae1_row0_col39\" class=\"data row0 col39\" >0</td>\n      <td id=\"T_72ae1_row0_col40\" class=\"data row0 col40\" >0</td>\n      <td id=\"T_72ae1_row0_col41\" class=\"data row0 col41\" >0</td>\n      <td id=\"T_72ae1_row0_col42\" class=\"data row0 col42\" >0</td>\n      <td id=\"T_72ae1_row0_col43\" class=\"data row0 col43\" >0</td>\n      <td id=\"T_72ae1_row0_col44\" class=\"data row0 col44\" >1</td>\n      <td id=\"T_72ae1_row0_col45\" class=\"data row0 col45\" >0</td>\n      <td id=\"T_72ae1_row0_col46\" class=\"data row0 col46\" >0</td>\n      <td id=\"T_72ae1_row0_col47\" class=\"data row0 col47\" >0</td>\n      <td id=\"T_72ae1_row0_col48\" class=\"data row0 col48\" >0</td>\n      <td id=\"T_72ae1_row0_col49\" class=\"data row0 col49\" >0</td>\n      <td id=\"T_72ae1_row0_col50\" class=\"data row0 col50\" >0</td>\n      <td id=\"T_72ae1_row0_col51\" class=\"data row0 col51\" >0</td>\n      <td id=\"T_72ae1_row0_col52\" class=\"data row0 col52\" >0</td>\n      <td id=\"T_72ae1_row0_col53\" class=\"data row0 col53\" >0</td>\n      <td id=\"T_72ae1_row0_col54\" class=\"data row0 col54\" >0</td>\n      <td id=\"T_72ae1_row0_col55\" class=\"data row0 col55\" >0</td>\n      <td id=\"T_72ae1_row0_col56\" class=\"data row0 col56\" >0</td>\n      <td id=\"T_72ae1_row0_col57\" class=\"data row0 col57\" >0</td>\n      <td id=\"T_72ae1_row0_col58\" class=\"data row0 col58\" >0</td>\n      <td id=\"T_72ae1_row0_col59\" class=\"data row0 col59\" >0</td>\n      <td id=\"T_72ae1_row0_col60\" class=\"data row0 col60\" >0</td>\n      <td id=\"T_72ae1_row0_col61\" class=\"data row0 col61\" >0</td>\n      <td id=\"T_72ae1_row0_col62\" class=\"data row0 col62\" >0</td>\n      <td id=\"T_72ae1_row0_col63\" class=\"data row0 col63\" >0</td>\n    </tr>\n    <tr>\n      <th id=\"T_72ae1_level0_row1\" class=\"row_heading level0 row1\" >8672, 19441</th>\n      <th id=\"T_72ae1_level1_row1\" class=\"row_heading level1 row1\" >2</th>\n      <td id=\"T_72ae1_row1_col0\" class=\"data row1 col0\" >10</td>\n      <td id=\"T_72ae1_row1_col1\" class=\"data row1 col1\" >2</td>\n      <td id=\"T_72ae1_row1_col2\" class=\"data row1 col2\" >0</td>\n      <td id=\"T_72ae1_row1_col3\" class=\"data row1 col3\" >31</td>\n      <td id=\"T_72ae1_row1_col4\" class=\"data row1 col4\" >0</td>\n      <td id=\"T_72ae1_row1_col5\" class=\"data row1 col5\" >5</td>\n      <td id=\"T_72ae1_row1_col6\" class=\"data row1 col6\" >0.00</td>\n      <td id=\"T_72ae1_row1_col7\" class=\"data row1 col7\" >1.00</td>\n      <td id=\"T_72ae1_row1_col8\" class=\"data row1 col8\" >0.00</td>\n      <td id=\"T_72ae1_row1_col9\" class=\"data row1 col9\" >2.00</td>\n      <td id=\"T_72ae1_row1_col10\" class=\"data row1 col10\" >1.00</td>\n      <td id=\"T_72ae1_row1_col11\" class=\"data row1 col11\" >1</td>\n      <td id=\"T_72ae1_row1_col12\" class=\"data row1 col12\" >1</td>\n      <td id=\"T_72ae1_row1_col13\" class=\"data row1 col13\" >0</td>\n      <td id=\"T_72ae1_row1_col14\" class=\"data row1 col14\" >0</td>\n      <td id=\"T_72ae1_row1_col15\" class=\"data row1 col15\" >1</td>\n      <td id=\"T_72ae1_row1_col16\" class=\"data row1 col16\" >0.00</td>\n      <td id=\"T_72ae1_row1_col17\" class=\"data row1 col17\" >0.00</td>\n      <td id=\"T_72ae1_row1_col18\" class=\"data row1 col18\" >273.33</td>\n      <td id=\"T_72ae1_row1_col19\" class=\"data row1 col19\" >282.44</td>\n      <td id=\"T_72ae1_row1_col20\" class=\"data row1 col20\" >37499</td>\n      <td id=\"T_72ae1_row1_col21\" class=\"data row1 col21\" >25000</td>\n      <td id=\"T_72ae1_row1_col22\" class=\"data row1 col22\" >0</td>\n      <td id=\"T_72ae1_row1_col23\" class=\"data row1 col23\" >1</td>\n      <td id=\"T_72ae1_row1_col24\" class=\"data row1 col24\" >0</td>\n      <td id=\"T_72ae1_row1_col25\" class=\"data row1 col25\" >0</td>\n      <td id=\"T_72ae1_row1_col26\" class=\"data row1 col26\" >1</td>\n      <td id=\"T_72ae1_row1_col27\" class=\"data row1 col27\" >0</td>\n      <td id=\"T_72ae1_row1_col28\" class=\"data row1 col28\" >0</td>\n      <td id=\"T_72ae1_row1_col29\" class=\"data row1 col29\" >0</td>\n      <td id=\"T_72ae1_row1_col30\" class=\"data row1 col30\" >0</td>\n      <td id=\"T_72ae1_row1_col31\" class=\"data row1 col31\" >0</td>\n      <td id=\"T_72ae1_row1_col32\" class=\"data row1 col32\" >1</td>\n      <td id=\"T_72ae1_row1_col33\" class=\"data row1 col33\" >0</td>\n      <td id=\"T_72ae1_row1_col34\" class=\"data row1 col34\" >0</td>\n      <td id=\"T_72ae1_row1_col35\" class=\"data row1 col35\" >1</td>\n      <td id=\"T_72ae1_row1_col36\" class=\"data row1 col36\" >0</td>\n      <td id=\"T_72ae1_row1_col37\" class=\"data row1 col37\" >0</td>\n      <td id=\"T_72ae1_row1_col38\" class=\"data row1 col38\" >0</td>\n      <td id=\"T_72ae1_row1_col39\" class=\"data row1 col39\" >0</td>\n      <td id=\"T_72ae1_row1_col40\" class=\"data row1 col40\" >0</td>\n      <td id=\"T_72ae1_row1_col41\" class=\"data row1 col41\" >0</td>\n      <td id=\"T_72ae1_row1_col42\" class=\"data row1 col42\" >0</td>\n      <td id=\"T_72ae1_row1_col43\" class=\"data row1 col43\" >0</td>\n      <td id=\"T_72ae1_row1_col44\" class=\"data row1 col44\" >0</td>\n      <td id=\"T_72ae1_row1_col45\" class=\"data row1 col45\" >0</td>\n      <td id=\"T_72ae1_row1_col46\" class=\"data row1 col46\" >0</td>\n      <td id=\"T_72ae1_row1_col47\" class=\"data row1 col47\" >0</td>\n      <td id=\"T_72ae1_row1_col48\" class=\"data row1 col48\" >0</td>\n      <td id=\"T_72ae1_row1_col49\" class=\"data row1 col49\" >0</td>\n      <td id=\"T_72ae1_row1_col50\" class=\"data row1 col50\" >1</td>\n      <td id=\"T_72ae1_row1_col51\" class=\"data row1 col51\" >0</td>\n      <td id=\"T_72ae1_row1_col52\" class=\"data row1 col52\" >0</td>\n      <td id=\"T_72ae1_row1_col53\" class=\"data row1 col53\" >0</td>\n      <td id=\"T_72ae1_row1_col54\" class=\"data row1 col54\" >0</td>\n      <td id=\"T_72ae1_row1_col55\" class=\"data row1 col55\" >0</td>\n      <td id=\"T_72ae1_row1_col56\" class=\"data row1 col56\" >0</td>\n      <td id=\"T_72ae1_row1_col57\" class=\"data row1 col57\" >0</td>\n      <td id=\"T_72ae1_row1_col58\" class=\"data row1 col58\" >0</td>\n      <td id=\"T_72ae1_row1_col59\" class=\"data row1 col59\" >0</td>\n      <td id=\"T_72ae1_row1_col60\" class=\"data row1 col60\" >0</td>\n      <td id=\"T_72ae1_row1_col61\" class=\"data row1 col61\" >0</td>\n      <td id=\"T_72ae1_row1_col62\" class=\"data row1 col62\" >0</td>\n      <td id=\"T_72ae1_row1_col63\" class=\"data row1 col63\" >0</td>\n    </tr>\n    <tr>\n      <th id=\"T_72ae1_level0_row2\" class=\"row_heading level0 row2\" >10157, 11018</th>\n      <th id=\"T_72ae1_level1_row2\" class=\"row_heading level1 row2\" >2</th>\n      <td id=\"T_72ae1_row2_col0\" class=\"data row2 col0\" >10</td>\n      <td id=\"T_72ae1_row2_col1\" class=\"data row2 col1\" >24</td>\n      <td id=\"T_72ae1_row2_col2\" class=\"data row2 col2\" >0</td>\n      <td id=\"T_72ae1_row2_col3\" class=\"data row2 col3\" >21</td>\n      <td id=\"T_72ae1_row2_col4\" class=\"data row2 col4\" >1</td>\n      <td id=\"T_72ae1_row2_col5\" class=\"data row2 col5\" >1</td>\n      <td id=\"T_72ae1_row2_col6\" class=\"data row2 col6\" >2.00</td>\n      <td id=\"T_72ae1_row2_col7\" class=\"data row2 col7\" >1.00</td>\n      <td id=\"T_72ae1_row2_col8\" class=\"data row2 col8\" >3.00</td>\n      <td id=\"T_72ae1_row2_col9\" class=\"data row2 col9\" >2.00</td>\n      <td id=\"T_72ae1_row2_col10\" class=\"data row2 col10\" >0.00</td>\n      <td id=\"T_72ae1_row2_col11\" class=\"data row2 col11\" >1</td>\n      <td id=\"T_72ae1_row2_col12\" class=\"data row2 col12\" >1</td>\n      <td id=\"T_72ae1_row2_col13\" class=\"data row2 col13\" >1</td>\n      <td id=\"T_72ae1_row2_col14\" class=\"data row2 col14\" >0</td>\n      <td id=\"T_72ae1_row2_col15\" class=\"data row2 col15\" >1</td>\n      <td id=\"T_72ae1_row2_col16\" class=\"data row2 col16\" >0.00</td>\n      <td id=\"T_72ae1_row2_col17\" class=\"data row2 col17\" >0.00</td>\n      <td id=\"T_72ae1_row2_col18\" class=\"data row2 col18\" >273.33</td>\n      <td id=\"T_72ae1_row2_col19\" class=\"data row2 col19\" >282.44</td>\n      <td id=\"T_72ae1_row2_col20\" class=\"data row2 col20\" >12499</td>\n      <td id=\"T_72ae1_row2_col21\" class=\"data row2 col21\" >0</td>\n      <td id=\"T_72ae1_row2_col22\" class=\"data row2 col22\" >0</td>\n      <td id=\"T_72ae1_row2_col23\" class=\"data row2 col23\" >1</td>\n      <td id=\"T_72ae1_row2_col24\" class=\"data row2 col24\" >0</td>\n      <td id=\"T_72ae1_row2_col25\" class=\"data row2 col25\" >0</td>\n      <td id=\"T_72ae1_row2_col26\" class=\"data row2 col26\" >1</td>\n      <td id=\"T_72ae1_row2_col27\" class=\"data row2 col27\" >0</td>\n      <td id=\"T_72ae1_row2_col28\" class=\"data row2 col28\" >0</td>\n      <td id=\"T_72ae1_row2_col29\" class=\"data row2 col29\" >0</td>\n      <td id=\"T_72ae1_row2_col30\" class=\"data row2 col30\" >0</td>\n      <td id=\"T_72ae1_row2_col31\" class=\"data row2 col31\" >0</td>\n      <td id=\"T_72ae1_row2_col32\" class=\"data row2 col32\" >0</td>\n      <td id=\"T_72ae1_row2_col33\" class=\"data row2 col33\" >1</td>\n      <td id=\"T_72ae1_row2_col34\" class=\"data row2 col34\" >1</td>\n      <td id=\"T_72ae1_row2_col35\" class=\"data row2 col35\" >0</td>\n      <td id=\"T_72ae1_row2_col36\" class=\"data row2 col36\" >0</td>\n      <td id=\"T_72ae1_row2_col37\" class=\"data row2 col37\" >0</td>\n      <td id=\"T_72ae1_row2_col38\" class=\"data row2 col38\" >0</td>\n      <td id=\"T_72ae1_row2_col39\" class=\"data row2 col39\" >0</td>\n      <td id=\"T_72ae1_row2_col40\" class=\"data row2 col40\" >0</td>\n      <td id=\"T_72ae1_row2_col41\" class=\"data row2 col41\" >0</td>\n      <td id=\"T_72ae1_row2_col42\" class=\"data row2 col42\" >1</td>\n      <td id=\"T_72ae1_row2_col43\" class=\"data row2 col43\" >0</td>\n      <td id=\"T_72ae1_row2_col44\" class=\"data row2 col44\" >0</td>\n      <td id=\"T_72ae1_row2_col45\" class=\"data row2 col45\" >0</td>\n      <td id=\"T_72ae1_row2_col46\" class=\"data row2 col46\" >0</td>\n      <td id=\"T_72ae1_row2_col47\" class=\"data row2 col47\" >0</td>\n      <td id=\"T_72ae1_row2_col48\" class=\"data row2 col48\" >0</td>\n      <td id=\"T_72ae1_row2_col49\" class=\"data row2 col49\" >0</td>\n      <td id=\"T_72ae1_row2_col50\" class=\"data row2 col50\" >0</td>\n      <td id=\"T_72ae1_row2_col51\" class=\"data row2 col51\" >0</td>\n      <td id=\"T_72ae1_row2_col52\" class=\"data row2 col52\" >0</td>\n      <td id=\"T_72ae1_row2_col53\" class=\"data row2 col53\" >0</td>\n      <td id=\"T_72ae1_row2_col54\" class=\"data row2 col54\" >0</td>\n      <td id=\"T_72ae1_row2_col55\" class=\"data row2 col55\" >0</td>\n      <td id=\"T_72ae1_row2_col56\" class=\"data row2 col56\" >0</td>\n      <td id=\"T_72ae1_row2_col57\" class=\"data row2 col57\" >0</td>\n      <td id=\"T_72ae1_row2_col58\" class=\"data row2 col58\" >0</td>\n      <td id=\"T_72ae1_row2_col59\" class=\"data row2 col59\" >0</td>\n      <td id=\"T_72ae1_row2_col60\" class=\"data row2 col60\" >0</td>\n      <td id=\"T_72ae1_row2_col61\" class=\"data row2 col61\" >0</td>\n      <td id=\"T_72ae1_row2_col62\" class=\"data row2 col62\" >0</td>\n      <td id=\"T_72ae1_row2_col63\" class=\"data row2 col63\" >0</td>\n    </tr>\n    <tr>\n      <th id=\"T_72ae1_level0_row3\" class=\"row_heading level0 row3\" >5655, 9559</th>\n      <th id=\"T_72ae1_level1_row3\" class=\"row_heading level1 row3\" >2</th>\n      <td id=\"T_72ae1_row3_col0\" class=\"data row3 col0\" >14</td>\n      <td id=\"T_72ae1_row3_col1\" class=\"data row3 col1\" >24</td>\n      <td id=\"T_72ae1_row3_col2\" class=\"data row3 col2\" >0</td>\n      <td id=\"T_72ae1_row3_col3\" class=\"data row3 col3\" >26</td>\n      <td id=\"T_72ae1_row3_col4\" class=\"data row3 col4\" >1</td>\n      <td id=\"T_72ae1_row3_col5\" class=\"data row3 col5\" >6</td>\n      <td id=\"T_72ae1_row3_col6\" class=\"data row3 col6\" >4.00</td>\n      <td id=\"T_72ae1_row3_col7\" class=\"data row3 col7\" >4.00</td>\n      <td id=\"T_72ae1_row3_col8\" class=\"data row3 col8\" >0.00</td>\n      <td id=\"T_72ae1_row3_col9\" class=\"data row3 col9\" >2.00</td>\n      <td id=\"T_72ae1_row3_col10\" class=\"data row3 col10\" >1.00</td>\n      <td id=\"T_72ae1_row3_col11\" class=\"data row3 col11\" >1</td>\n      <td id=\"T_72ae1_row3_col12\" class=\"data row3 col12\" >1</td>\n      <td id=\"T_72ae1_row3_col13\" class=\"data row3 col13\" >0</td>\n      <td id=\"T_72ae1_row3_col14\" class=\"data row3 col14\" >0</td>\n      <td id=\"T_72ae1_row3_col15\" class=\"data row3 col15\" >1</td>\n      <td id=\"T_72ae1_row3_col16\" class=\"data row3 col16\" >0.00</td>\n      <td id=\"T_72ae1_row3_col17\" class=\"data row3 col17\" >0.00</td>\n      <td id=\"T_72ae1_row3_col18\" class=\"data row3 col18\" >273.33</td>\n      <td id=\"T_72ae1_row3_col19\" class=\"data row3 col19\" >282.44</td>\n      <td id=\"T_72ae1_row3_col20\" class=\"data row3 col20\" >87499</td>\n      <td id=\"T_72ae1_row3_col21\" class=\"data row3 col21\" >75000</td>\n      <td id=\"T_72ae1_row3_col22\" class=\"data row3 col22\" >0</td>\n      <td id=\"T_72ae1_row3_col23\" class=\"data row3 col23\" >1</td>\n      <td id=\"T_72ae1_row3_col24\" class=\"data row3 col24\" >0</td>\n      <td id=\"T_72ae1_row3_col25\" class=\"data row3 col25\" >0</td>\n      <td id=\"T_72ae1_row3_col26\" class=\"data row3 col26\" >0</td>\n      <td id=\"T_72ae1_row3_col27\" class=\"data row3 col27\" >1</td>\n      <td id=\"T_72ae1_row3_col28\" class=\"data row3 col28\" >0</td>\n      <td id=\"T_72ae1_row3_col29\" class=\"data row3 col29\" >0</td>\n      <td id=\"T_72ae1_row3_col30\" class=\"data row3 col30\" >0</td>\n      <td id=\"T_72ae1_row3_col31\" class=\"data row3 col31\" >1</td>\n      <td id=\"T_72ae1_row3_col32\" class=\"data row3 col32\" >0</td>\n      <td id=\"T_72ae1_row3_col33\" class=\"data row3 col33\" >0</td>\n      <td id=\"T_72ae1_row3_col34\" class=\"data row3 col34\" >0</td>\n      <td id=\"T_72ae1_row3_col35\" class=\"data row3 col35\" >1</td>\n      <td id=\"T_72ae1_row3_col36\" class=\"data row3 col36\" >0</td>\n      <td id=\"T_72ae1_row3_col37\" class=\"data row3 col37\" >0</td>\n      <td id=\"T_72ae1_row3_col38\" class=\"data row3 col38\" >0</td>\n      <td id=\"T_72ae1_row3_col39\" class=\"data row3 col39\" >0</td>\n      <td id=\"T_72ae1_row3_col40\" class=\"data row3 col40\" >0</td>\n      <td id=\"T_72ae1_row3_col41\" class=\"data row3 col41\" >0</td>\n      <td id=\"T_72ae1_row3_col42\" class=\"data row3 col42\" >0</td>\n      <td id=\"T_72ae1_row3_col43\" class=\"data row3 col43\" >0</td>\n      <td id=\"T_72ae1_row3_col44\" class=\"data row3 col44\" >0</td>\n      <td id=\"T_72ae1_row3_col45\" class=\"data row3 col45\" >0</td>\n      <td id=\"T_72ae1_row3_col46\" class=\"data row3 col46\" >0</td>\n      <td id=\"T_72ae1_row3_col47\" class=\"data row3 col47\" >0</td>\n      <td id=\"T_72ae1_row3_col48\" class=\"data row3 col48\" >0</td>\n      <td id=\"T_72ae1_row3_col49\" class=\"data row3 col49\" >0</td>\n      <td id=\"T_72ae1_row3_col50\" class=\"data row3 col50\" >0</td>\n      <td id=\"T_72ae1_row3_col51\" class=\"data row3 col51\" >0</td>\n      <td id=\"T_72ae1_row3_col52\" class=\"data row3 col52\" >0</td>\n      <td id=\"T_72ae1_row3_col53\" class=\"data row3 col53\" >0</td>\n      <td id=\"T_72ae1_row3_col54\" class=\"data row3 col54\" >0</td>\n      <td id=\"T_72ae1_row3_col55\" class=\"data row3 col55\" >0</td>\n      <td id=\"T_72ae1_row3_col56\" class=\"data row3 col56\" >0</td>\n      <td id=\"T_72ae1_row3_col57\" class=\"data row3 col57\" >1</td>\n      <td id=\"T_72ae1_row3_col58\" class=\"data row3 col58\" >0</td>\n      <td id=\"T_72ae1_row3_col59\" class=\"data row3 col59\" >0</td>\n      <td id=\"T_72ae1_row3_col60\" class=\"data row3 col60\" >0</td>\n      <td id=\"T_72ae1_row3_col61\" class=\"data row3 col61\" >0</td>\n      <td id=\"T_72ae1_row3_col62\" class=\"data row3 col62\" >0</td>\n      <td id=\"T_72ae1_row3_col63\" class=\"data row3 col63\" >0</td>\n    </tr>\n  </tbody>\n</table>\n<br><a href=\"#summary_K90CD\" style=\"font-size: 14px\">Go to top</a>"
+      }
+    },
+    "6434b7e40d1d43a9bc92eccea13a3c8b": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "7febe3314e25424a8dd2be4c3d756de8": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "1392e35242ab4e7a8e1fd52840727c60": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "521e1fad61974f34909a83a9cfa10661": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_d034146794ee427ca1991a59c3b4b05a",
+        "style": "IPY_MODEL_7247ec0b1129479ab6f4c856e690c111",
+        "value": "<hr style=\"background-color: #eee;border: 0 none;color: #eee;height: 4px;\">"
+      }
+    },
+    "d034146794ee427ca1991a59c3b4b05a": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "7247ec0b1129479ab6f4c856e690c111": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "31785b4b445244fea83e898fe94204a8": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_469f0853026942688887ec8d64bd93a0"
+        ],
+        "layout": "IPY_MODEL_4372104f56214c5dabb47ecd2ad7f929"
+      }
+    },
+    "469f0853026942688887ec8d64bd93a0": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_00b314dfc6424fc8b6f2203f83969185",
+        "style": "IPY_MODEL_536781e3a0ab4d2e81d755755428110d",
+        "value": "<h4 id=\"DatasetsSizeComparison_K90CD\">Datasets Size Comparison</h4><p>Verify test dataset size comparing it to the train dataset size. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/methodology/examples/plot_datasets_size_comparison.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></p><h5>Conditions Summary</h5><style type=\"text/css\">\n#T_68b6c_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_68b6c_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_68b6c_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_68b6c_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_68b6c_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_68b6c_\">\n  <thead>\n    <tr>\n      <th class=\"col_heading level0 col0\" >Status</th>\n      <th class=\"col_heading level0 col1\" >Condition</th>\n      <th class=\"col_heading level0 col2\" >More Info</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td id=\"T_68b6c_row0_col0\" class=\"data row0 col0\" ><div style=\"color: green;text-align: center\">\u2713</div></td>\n      <td id=\"T_68b6c_row0_col1\" class=\"data row0 col1\" >Test-Train size ratio is not smaller than 0.01</td>\n      <td id=\"T_68b6c_row0_col2\" class=\"data row0 col2\" ></td>\n    </tr>\n  </tbody>\n</table>\n<h5>Additional Outputs</h5><style type=\"text/css\">\n#T_57ece_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_57ece_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_57ece_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_57ece_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_57ece_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_57ece_\">\n  <thead>\n    <tr>\n      <th class=\"blank level0\" >&nbsp;</th>\n      <th class=\"col_heading level0 col0\" >Train</th>\n      <th class=\"col_heading level0 col1\" >Test</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th id=\"T_57ece_level0_row0\" class=\"row_heading level0 row0\" >Size</th>\n      <td id=\"T_57ece_row0_col0\" class=\"data row0 col0\" >21000</td>\n      <td id=\"T_57ece_row0_col1\" class=\"data row0 col1\" >21000</td>\n    </tr>\n  </tbody>\n</table>\n<br><a href=\"#summary_K90CD\" style=\"font-size: 14px\">Go to top</a>"
+      }
+    },
+    "00b314dfc6424fc8b6f2203f83969185": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "536781e3a0ab4d2e81d755755428110d": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "4372104f56214c5dabb47ecd2ad7f929": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "84b6c7df243e42b2b317ec0688c385be": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "7ce3079104954028bfd92d08d78953b1": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [
+          "rendered_html",
+          "jp-RenderedHTMLCommon",
+          "jp-RenderedHTML",
+          "jp-OutputArea-output"
+        ],
+        "children": [
+          "IPY_MODEL_0a39cd00d42049ea9f8f822295469ddb",
+          "IPY_MODEL_ac83eaaca47a4e46b029a47b01805e23",
+          "IPY_MODEL_8d9c32340b724b1ba5cfb07f8c456b3d",
+          "IPY_MODEL_11ca97b7580745f28476ba5468b5160f",
+          "IPY_MODEL_92bd07b97e0247188cc51e6a96aa3aaa",
+          "IPY_MODEL_ed6d838900d54c10a8dabe6bd80c16e5"
+        ],
+        "layout": "IPY_MODEL_7ea9e112fb844b728a71607ffef87dda"
+      }
+    },
+    "0a39cd00d42049ea9f8f822295469ddb": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_fd63f0b875ae4d7d96265bc56e968c08",
+        "style": "IPY_MODEL_350d929f79cb41cbaa571a3c43e7faff",
+        "value": "<h2>Check Without Conditions Output</h2>"
+      }
+    },
+    "fd63f0b875ae4d7d96265bc56e968c08": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "350d929f79cb41cbaa571a3c43e7faff": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "ac83eaaca47a4e46b029a47b01805e23": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_92076a48e1c64030bf069c8fc09ec989",
+        "style": "IPY_MODEL_2fa18ba8ad604f51b472a790ee9311a8",
+        "value": "<style type=\"text/css\">\n#T_b5c0a_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5c0a_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5c0a_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5c0a_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5c0a_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_b5c0a_\">\n  <thead>\n    <tr>\n      <th class=\"col_heading level0 col0\" >Check</th>\n      <th class=\"col_heading level0 col1\" >Summary</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td id=\"T_b5c0a_row0_col0\" class=\"data row0 col0\" ><a href=#ColumnsInfo-TrainDataset_K90CD>Columns Info - Train Dataset</a></td>\n      <td id=\"T_b5c0a_row0_col1\" class=\"data row0 col1\" >Return the role and logical type of each column. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/overview/examples/plot_columns_info.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></td>\n    </tr>\n    <tr>\n      <td id=\"T_b5c0a_row1_col0\" class=\"data row1 col0\" ><a href=#ColumnsInfo-TestDataset_K90CD>Columns Info - Test Dataset</a></td>\n      <td id=\"T_b5c0a_row1_col1\" class=\"data row1 col1\" >Return the role and logical type of each column. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/overview/examples/plot_columns_info.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></td>\n    </tr>\n  </tbody>\n</table>\n"
+      }
+    },
+    "92076a48e1c64030bf069c8fc09ec989": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "2fa18ba8ad604f51b472a790ee9311a8": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "8d9c32340b724b1ba5cfb07f8c456b3d": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_2653fec794134201bb711ec051d41778",
+        "style": "IPY_MODEL_2b4ebf0d981e4b909ae65d0bfcf56542",
+        "value": "<hr style=\"background-color: #eee;border: 0 none;color: #eee;height: 4px;\">"
+      }
+    },
+    "2653fec794134201bb711ec051d41778": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "2b4ebf0d981e4b909ae65d0bfcf56542": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "11ca97b7580745f28476ba5468b5160f": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_d5c23a8d91394f6dba1bb59123d02543"
+        ],
+        "layout": "IPY_MODEL_ce7f1eacbea44890a87972e654b8c29e"
+      }
+    },
+    "d5c23a8d91394f6dba1bb59123d02543": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_05924a79853447f88b1ed1afcc030d4b",
+        "style": "IPY_MODEL_c090d97cce1045109368b6da0b734e15",
+        "value": "<h4 id=\"ColumnsInfo-TrainDataset_K90CD\">Columns Info - Train Dataset</h4><p>Return the role and logical type of each column. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/overview/examples/plot_columns_info.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></p><h5>Additional Outputs</h5><div>* showing only the top 10 columns, you can change it using n_top_columns param</div><style type=\"text/css\">\n#T_f42cc_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_f42cc_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_f42cc_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_f42cc_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_f42cc_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_f42cc_\">\n  <thead>\n    <tr>\n      <th class=\"blank level0\" >&nbsp;</th>\n      <th class=\"col_heading level0 col0\" >time</th>\n      <th class=\"col_heading level0 col1\" >expiration</th>\n      <th class=\"col_heading level0 col2\" >gender</th>\n      <th class=\"col_heading level0 col3\" >age</th>\n      <th class=\"col_heading level0 col4\" >has_children</th>\n      <th class=\"col_heading level0 col5\" >education</th>\n      <th class=\"col_heading level0 col6\" >Bar</th>\n      <th class=\"col_heading level0 col7\" >CoffeeHouse</th>\n      <th class=\"col_heading level0 col8\" >CarryAway</th>\n      <th class=\"col_heading level0 col9\" >RestaurantLessThan20</th>\n      <th class=\"col_heading level0 col10\" >Restaurant20To50</th>\n      <th class=\"col_heading level0 col11\" >toCoupon_GEQ5min</th>\n      <th class=\"col_heading level0 col12\" >toCoupon_GEQ15min</th>\n      <th class=\"col_heading level0 col13\" >toCoupon_GEQ25min</th>\n      <th class=\"col_heading level0 col14\" >direction_same</th>\n      <th class=\"col_heading level0 col15\" >direction_opp</th>\n      <th class=\"col_heading level0 col16\" >Snow_cm</th>\n      <th class=\"col_heading level0 col17\" >Rain_mm</th>\n      <th class=\"col_heading level0 col18\" >MinTemp</th>\n      <th class=\"col_heading level0 col19\" >MaxTemp</th>\n      <th class=\"col_heading level0 col20\" >income_ub</th>\n      <th class=\"col_heading level0 col21\" >income_lb</th>\n      <th class=\"col_heading level0 col22\" >destination_Home</th>\n      <th class=\"col_heading level0 col23\" >destination_No Urgent Place</th>\n      <th class=\"col_heading level0 col24\" >destination_Work</th>\n      <th class=\"col_heading level0 col25\" >passanger_Alone</th>\n      <th class=\"col_heading level0 col26\" >passanger_Friend(s)</th>\n      <th class=\"col_heading level0 col27\" >passanger_Kid(s)</th>\n      <th class=\"col_heading level0 col28\" >passanger_Partner</th>\n      <th class=\"col_heading level0 col29\" >coupon_Bar</th>\n      <th class=\"col_heading level0 col30\" >coupon_Carry out & Take away</th>\n      <th class=\"col_heading level0 col31\" >coupon_Coffee House</th>\n      <th class=\"col_heading level0 col32\" >coupon_Restaurant(20-50)</th>\n      <th class=\"col_heading level0 col33\" >coupon_Restaurant(<20)</th>\n      <th class=\"col_heading level0 col34\" >maritalStatus_Divorced</th>\n      <th class=\"col_heading level0 col35\" >maritalStatus_Married partner</th>\n      <th class=\"col_heading level0 col36\" >maritalStatus_Single</th>\n      <th class=\"col_heading level0 col37\" >maritalStatus_Unmarried partner</th>\n      <th class=\"col_heading level0 col38\" >maritalStatus_Widowed</th>\n      <th class=\"col_heading level0 col39\" >occupation_Architecture & Engineering</th>\n      <th class=\"col_heading level0 col40\" >occupation_Arts Design Entertainment Sports & Media</th>\n      <th class=\"col_heading level0 col41\" >occupation_Building & Grounds Cleaning & Maintenance</th>\n      <th class=\"col_heading level0 col42\" >occupation_Business & Financial</th>\n      <th class=\"col_heading level0 col43\" >occupation_Community & Social Services</th>\n      <th class=\"col_heading level0 col44\" >occupation_Computer & Mathematical</th>\n      <th class=\"col_heading level0 col45\" >occupation_Construction & Extraction</th>\n      <th class=\"col_heading level0 col46\" >occupation_Education&Training&Library</th>\n      <th class=\"col_heading level0 col47\" >occupation_Farming Fishing & Forestry</th>\n      <th class=\"col_heading level0 col48\" >occupation_Food Preparation & Serving Related</th>\n      <th class=\"col_heading level0 col49\" >occupation_Healthcare Practitioners & Technical</th>\n      <th class=\"col_heading level0 col50\" >occupation_Healthcare Support</th>\n      <th class=\"col_heading level0 col51\" >occupation_Installation Maintenance & Repair</th>\n      <th class=\"col_heading level0 col52\" >occupation_Legal</th>\n      <th class=\"col_heading level0 col53\" >occupation_Life Physical Social Science</th>\n      <th class=\"col_heading level0 col54\" >occupation_Management</th>\n      <th class=\"col_heading level0 col55\" >occupation_Office & Administrative Support</th>\n      <th class=\"col_heading level0 col56\" >occupation_Personal Care & Service</th>\n      <th class=\"col_heading level0 col57\" >occupation_Production Occupations</th>\n      <th class=\"col_heading level0 col58\" >occupation_Protective Service</th>\n      <th class=\"col_heading level0 col59\" >occupation_Retired</th>\n      <th class=\"col_heading level0 col60\" >occupation_Sales & Related</th>\n      <th class=\"col_heading level0 col61\" >occupation_Student</th>\n      <th class=\"col_heading level0 col62\" >occupation_Transportation & Material Moving</th>\n      <th class=\"col_heading level0 col63\" >occupation_Unemployed</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th id=\"T_f42cc_level0_row0\" class=\"row_heading level0 row0\" >role</th>\n      <td id=\"T_f42cc_row0_col0\" class=\"data row0 col0\" >other</td>\n      <td id=\"T_f42cc_row0_col1\" class=\"data row0 col1\" >other</td>\n      <td id=\"T_f42cc_row0_col2\" class=\"data row0 col2\" >other</td>\n      <td id=\"T_f42cc_row0_col3\" class=\"data row0 col3\" >other</td>\n      <td id=\"T_f42cc_row0_col4\" class=\"data row0 col4\" >other</td>\n      <td id=\"T_f42cc_row0_col5\" class=\"data row0 col5\" >other</td>\n      <td id=\"T_f42cc_row0_col6\" class=\"data row0 col6\" >other</td>\n      <td id=\"T_f42cc_row0_col7\" class=\"data row0 col7\" >other</td>\n      <td id=\"T_f42cc_row0_col8\" class=\"data row0 col8\" >other</td>\n      <td id=\"T_f42cc_row0_col9\" class=\"data row0 col9\" >other</td>\n      <td id=\"T_f42cc_row0_col10\" class=\"data row0 col10\" >other</td>\n      <td id=\"T_f42cc_row0_col11\" class=\"data row0 col11\" >other</td>\n      <td id=\"T_f42cc_row0_col12\" class=\"data row0 col12\" >other</td>\n      <td id=\"T_f42cc_row0_col13\" class=\"data row0 col13\" >other</td>\n      <td id=\"T_f42cc_row0_col14\" class=\"data row0 col14\" >other</td>\n      <td id=\"T_f42cc_row0_col15\" class=\"data row0 col15\" >other</td>\n      <td id=\"T_f42cc_row0_col16\" class=\"data row0 col16\" >other</td>\n      <td id=\"T_f42cc_row0_col17\" class=\"data row0 col17\" >other</td>\n      <td id=\"T_f42cc_row0_col18\" class=\"data row0 col18\" >other</td>\n      <td id=\"T_f42cc_row0_col19\" class=\"data row0 col19\" >other</td>\n      <td id=\"T_f42cc_row0_col20\" class=\"data row0 col20\" >other</td>\n      <td id=\"T_f42cc_row0_col21\" class=\"data row0 col21\" >other</td>\n      <td id=\"T_f42cc_row0_col22\" class=\"data row0 col22\" >other</td>\n      <td id=\"T_f42cc_row0_col23\" class=\"data row0 col23\" >other</td>\n      <td id=\"T_f42cc_row0_col24\" class=\"data row0 col24\" >other</td>\n      <td id=\"T_f42cc_row0_col25\" class=\"data row0 col25\" >other</td>\n      <td id=\"T_f42cc_row0_col26\" class=\"data row0 col26\" >other</td>\n      <td id=\"T_f42cc_row0_col27\" class=\"data row0 col27\" >other</td>\n      <td id=\"T_f42cc_row0_col28\" class=\"data row0 col28\" >other</td>\n      <td id=\"T_f42cc_row0_col29\" class=\"data row0 col29\" >other</td>\n      <td id=\"T_f42cc_row0_col30\" class=\"data row0 col30\" >other</td>\n      <td id=\"T_f42cc_row0_col31\" class=\"data row0 col31\" >other</td>\n      <td id=\"T_f42cc_row0_col32\" class=\"data row0 col32\" >other</td>\n      <td id=\"T_f42cc_row0_col33\" class=\"data row0 col33\" >other</td>\n      <td id=\"T_f42cc_row0_col34\" class=\"data row0 col34\" >other</td>\n      <td id=\"T_f42cc_row0_col35\" class=\"data row0 col35\" >other</td>\n      <td id=\"T_f42cc_row0_col36\" class=\"data row0 col36\" >other</td>\n      <td id=\"T_f42cc_row0_col37\" class=\"data row0 col37\" >other</td>\n      <td id=\"T_f42cc_row0_col38\" class=\"data row0 col38\" >other</td>\n      <td id=\"T_f42cc_row0_col39\" class=\"data row0 col39\" >other</td>\n      <td id=\"T_f42cc_row0_col40\" class=\"data row0 col40\" >other</td>\n      <td id=\"T_f42cc_row0_col41\" class=\"data row0 col41\" >other</td>\n      <td id=\"T_f42cc_row0_col42\" class=\"data row0 col42\" >other</td>\n      <td id=\"T_f42cc_row0_col43\" class=\"data row0 col43\" >other</td>\n      <td id=\"T_f42cc_row0_col44\" class=\"data row0 col44\" >other</td>\n      <td id=\"T_f42cc_row0_col45\" class=\"data row0 col45\" >other</td>\n      <td id=\"T_f42cc_row0_col46\" class=\"data row0 col46\" >other</td>\n      <td id=\"T_f42cc_row0_col47\" class=\"data row0 col47\" >other</td>\n      <td id=\"T_f42cc_row0_col48\" class=\"data row0 col48\" >other</td>\n      <td id=\"T_f42cc_row0_col49\" class=\"data row0 col49\" >other</td>\n      <td id=\"T_f42cc_row0_col50\" class=\"data row0 col50\" >other</td>\n      <td id=\"T_f42cc_row0_col51\" class=\"data row0 col51\" >other</td>\n      <td id=\"T_f42cc_row0_col52\" class=\"data row0 col52\" >other</td>\n      <td id=\"T_f42cc_row0_col53\" class=\"data row0 col53\" >other</td>\n      <td id=\"T_f42cc_row0_col54\" class=\"data row0 col54\" >other</td>\n      <td id=\"T_f42cc_row0_col55\" class=\"data row0 col55\" >other</td>\n      <td id=\"T_f42cc_row0_col56\" class=\"data row0 col56\" >other</td>\n      <td id=\"T_f42cc_row0_col57\" class=\"data row0 col57\" >other</td>\n      <td id=\"T_f42cc_row0_col58\" class=\"data row0 col58\" >other</td>\n      <td id=\"T_f42cc_row0_col59\" class=\"data row0 col59\" >other</td>\n      <td id=\"T_f42cc_row0_col60\" class=\"data row0 col60\" >other</td>\n      <td id=\"T_f42cc_row0_col61\" class=\"data row0 col61\" >other</td>\n      <td id=\"T_f42cc_row0_col62\" class=\"data row0 col62\" >other</td>\n      <td id=\"T_f42cc_row0_col63\" class=\"data row0 col63\" >other</td>\n    </tr>\n  </tbody>\n</table>\n<br><a href=\"#summary_K90CD\" style=\"font-size: 14px\">Go to top</a>"
+      }
+    },
+    "05924a79853447f88b1ed1afcc030d4b": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "c090d97cce1045109368b6da0b734e15": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "ce7f1eacbea44890a87972e654b8c29e": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "92bd07b97e0247188cc51e6a96aa3aaa": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_5e1204553d304757a24de98342e6e221",
+        "style": "IPY_MODEL_f5362c3a4db24d49a7233d136b229898",
+        "value": "<hr style=\"background-color: #eee;border: 0 none;color: #eee;height: 4px;\">"
+      }
+    },
+    "5e1204553d304757a24de98342e6e221": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "f5362c3a4db24d49a7233d136b229898": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "ed6d838900d54c10a8dabe6bd80c16e5": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_c3adcd7d3fbc4149898dc6153219f086"
+        ],
+        "layout": "IPY_MODEL_ba6ebe133edf456e97a1c70f8d23f589"
+      }
+    },
+    "c3adcd7d3fbc4149898dc6153219f086": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_1d9e46a0164b4cb6a6eb9e9eb8ad9b83",
+        "style": "IPY_MODEL_5b6ce6067d714104a75ab64747d3ee20",
+        "value": "<h4 id=\"ColumnsInfo-TestDataset_K90CD\">Columns Info - Test Dataset</h4><p>Return the role and logical type of each column. <a href=\"https://docs.deepchecks.com/0.6.1/examples/tabular/checks/overview/examples/plot_columns_info.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link\" target=\"_blank\">Read More...</a></p><h5>Additional Outputs</h5><div>* showing only the top 10 columns, you can change it using n_top_columns param</div><style type=\"text/css\">\n#T_78381_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_78381_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_78381_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_78381_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_78381_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_78381_\">\n  <thead>\n    <tr>\n      <th class=\"blank level0\" >&nbsp;</th>\n      <th class=\"col_heading level0 col0\" >index</th>\n      <th class=\"col_heading level0 col1\" >destination</th>\n      <th class=\"col_heading level0 col2\" >passanger</th>\n      <th class=\"col_heading level0 col3\" >time</th>\n      <th class=\"col_heading level0 col4\" >coupon</th>\n      <th class=\"col_heading level0 col5\" >expiration</th>\n      <th class=\"col_heading level0 col6\" >gender</th>\n      <th class=\"col_heading level0 col7\" >age</th>\n      <th class=\"col_heading level0 col8\" >maritalStatus</th>\n      <th class=\"col_heading level0 col9\" >has_children</th>\n      <th class=\"col_heading level0 col10\" >education</th>\n      <th class=\"col_heading level0 col11\" >occupation</th>\n      <th class=\"col_heading level0 col12\" >income</th>\n      <th class=\"col_heading level0 col13\" >Bar</th>\n      <th class=\"col_heading level0 col14\" >CoffeeHouse</th>\n      <th class=\"col_heading level0 col15\" >CarryAway</th>\n      <th class=\"col_heading level0 col16\" >RestaurantLessThan20</th>\n      <th class=\"col_heading level0 col17\" >Restaurant20To50</th>\n      <th class=\"col_heading level0 col18\" >toCoupon_GEQ5min</th>\n      <th class=\"col_heading level0 col19\" >toCoupon_GEQ15min</th>\n      <th class=\"col_heading level0 col20\" >toCoupon_GEQ25min</th>\n      <th class=\"col_heading level0 col21\" >direction_same</th>\n      <th class=\"col_heading level0 col22\" >direction_opp</th>\n      <th class=\"col_heading level0 col23\" >Y</th>\n      <th class=\"col_heading level0 col24\" >Date</th>\n      <th class=\"col_heading level0 col25\" >Snow_cm</th>\n      <th class=\"col_heading level0 col26\" >Rain_mm</th>\n      <th class=\"col_heading level0 col27\" >MinTemp</th>\n      <th class=\"col_heading level0 col28\" >MaxTemp</th>\n      <th class=\"col_heading level0 col29\" >income_ub</th>\n      <th class=\"col_heading level0 col30\" >income_lb</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th id=\"T_78381_level0_row0\" class=\"row_heading level0 row0\" >role</th>\n      <td id=\"T_78381_row0_col0\" class=\"data row0 col0\" >other</td>\n      <td id=\"T_78381_row0_col1\" class=\"data row0 col1\" >other</td>\n      <td id=\"T_78381_row0_col2\" class=\"data row0 col2\" >other</td>\n      <td id=\"T_78381_row0_col3\" class=\"data row0 col3\" >other</td>\n      <td id=\"T_78381_row0_col4\" class=\"data row0 col4\" >other</td>\n      <td id=\"T_78381_row0_col5\" class=\"data row0 col5\" >other</td>\n      <td id=\"T_78381_row0_col6\" class=\"data row0 col6\" >other</td>\n      <td id=\"T_78381_row0_col7\" class=\"data row0 col7\" >other</td>\n      <td id=\"T_78381_row0_col8\" class=\"data row0 col8\" >other</td>\n      <td id=\"T_78381_row0_col9\" class=\"data row0 col9\" >other</td>\n      <td id=\"T_78381_row0_col10\" class=\"data row0 col10\" >other</td>\n      <td id=\"T_78381_row0_col11\" class=\"data row0 col11\" >other</td>\n      <td id=\"T_78381_row0_col12\" class=\"data row0 col12\" >other</td>\n      <td id=\"T_78381_row0_col13\" class=\"data row0 col13\" >other</td>\n      <td id=\"T_78381_row0_col14\" class=\"data row0 col14\" >other</td>\n      <td id=\"T_78381_row0_col15\" class=\"data row0 col15\" >other</td>\n      <td id=\"T_78381_row0_col16\" class=\"data row0 col16\" >other</td>\n      <td id=\"T_78381_row0_col17\" class=\"data row0 col17\" >other</td>\n      <td id=\"T_78381_row0_col18\" class=\"data row0 col18\" >other</td>\n      <td id=\"T_78381_row0_col19\" class=\"data row0 col19\" >other</td>\n      <td id=\"T_78381_row0_col20\" class=\"data row0 col20\" >other</td>\n      <td id=\"T_78381_row0_col21\" class=\"data row0 col21\" >other</td>\n      <td id=\"T_78381_row0_col22\" class=\"data row0 col22\" >other</td>\n      <td id=\"T_78381_row0_col23\" class=\"data row0 col23\" >other</td>\n      <td id=\"T_78381_row0_col24\" class=\"data row0 col24\" >other</td>\n      <td id=\"T_78381_row0_col25\" class=\"data row0 col25\" >other</td>\n      <td id=\"T_78381_row0_col26\" class=\"data row0 col26\" >other</td>\n      <td id=\"T_78381_row0_col27\" class=\"data row0 col27\" >other</td>\n      <td id=\"T_78381_row0_col28\" class=\"data row0 col28\" >other</td>\n      <td id=\"T_78381_row0_col29\" class=\"data row0 col29\" >other</td>\n      <td id=\"T_78381_row0_col30\" class=\"data row0 col30\" >other</td>\n    </tr>\n  </tbody>\n</table>\n<br><a href=\"#summary_K90CD\" style=\"font-size: 14px\">Go to top</a>"
+      }
+    },
+    "1d9e46a0164b4cb6a6eb9e9eb8ad9b83": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "5b6ce6067d714104a75ab64747d3ee20": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "ba6ebe133edf456e97a1c70f8d23f589": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "7ea9e112fb844b728a71607ffef87dda": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "c3742ee2758140f9abf5ad192918ddf3": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "children": [
+          "IPY_MODEL_a9855fe60d9d47ae961ead0bed6bff9a",
+          "IPY_MODEL_24a55e493c844de9aeb3d813e913960a"
+        ],
+        "layout": "IPY_MODEL_c82f45983db843019ae72ce6b8548f8e"
+      }
+    },
+    "a9855fe60d9d47ae961ead0bed6bff9a": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_99e01bbf21aa4a6e9838f432eaad7fa6",
+        "style": "IPY_MODEL_d5edcb5dbcaf4f5286976f8a5dcd90df",
+        "value": "<h2>Other Checks That Weren't Displayed</h2>"
+      }
+    },
+    "99e01bbf21aa4a6e9838f432eaad7fa6": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "d5edcb5dbcaf4f5286976f8a5dcd90df": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "24a55e493c844de9aeb3d813e913960a": {
+      "model_name": "VBoxModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [
+          "rendered_html",
+          "jp-RenderedHTMLCommon",
+          "jp-RenderedHTML",
+          "jp-OutputArea-output"
+        ],
+        "children": [
+          "IPY_MODEL_1313aee476504d489b7d1dfb21fb487c"
+        ],
+        "layout": "IPY_MODEL_0197bb6ad11749df81ecc37188f82540"
+      }
+    },
+    "1313aee476504d489b7d1dfb21fb487c": {
+      "model_name": "HTMLModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {
+        "_dom_classes": [],
+        "layout": "IPY_MODEL_6026fef1d4ae4e518a529c5ee8de2501",
+        "style": "IPY_MODEL_bc9c6b983a6b4dff99de9797279ecd99",
+        "value": "<style type=\"text/css\">\n#T_b5094_ table {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5094_ thead {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5094_ tbody {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5094_ th {\n  text-align: left;\n  white-space: pre-wrap;\n}\n#T_b5094_ td {\n  text-align: left;\n  white-space: pre-wrap;\n}\n</style>\n<table id=\"T_b5094_\">\n  <thead>\n    <tr>\n      <th class=\"col_heading level0 col0\" >Check</th>\n      <th class=\"col_heading level0 col1\" >Reason</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td id=\"T_b5094_row0_col0\" class=\"data row0 col0\" >Model Info</td>\n      <td id=\"T_b5094_row0_col1\" class=\"data row0 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row1_col0\" class=\"data row1 col0\" >Index Train Test Leakage</td>\n      <td id=\"T_b5094_row1_col1\" class=\"data row1 col1\" >There is no index defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row2_col0\" class=\"data row2 col0\" >Identifier Leakage - Test Dataset</td>\n      <td id=\"T_b5094_row2_col1\" class=\"data row2 col1\" >DeepchecksNotSupportedError: There is no label defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row3_col0\" class=\"data row3 col0\" >Identifier Leakage - Train Dataset</td>\n      <td id=\"T_b5094_row3_col1\" class=\"data row3 col1\" >DeepchecksNotSupportedError: There is no label defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row4_col0\" class=\"data row4 col0\" >Train Test Samples Mix</td>\n      <td id=\"T_b5094_row4_col1\" class=\"data row4 col1\" >DeepchecksNotSupportedError: There are no features defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row5_col0\" class=\"data row5 col0\" >Single Feature Contribution Train Test</td>\n      <td id=\"T_b5094_row5_col1\" class=\"data row5 col1\" >DeepchecksNotSupportedError: There are no features defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row6_col0\" class=\"data row6 col0\" >Date Train Test Leakage Overlap</td>\n      <td id=\"T_b5094_row6_col1\" class=\"data row6 col1\" >There is no datetime defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row7_col0\" class=\"data row7 col0\" >Date Train Test Leakage Duplicates</td>\n      <td id=\"T_b5094_row7_col1\" class=\"data row7 col1\" >There is no datetime defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row8_col0\" class=\"data row8 col0\" >New Label Train Test</td>\n      <td id=\"T_b5094_row8_col1\" class=\"data row8 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row9_col0\" class=\"data row9 col0\" >Label Ambiguity - Train Dataset</td>\n      <td id=\"T_b5094_row9_col1\" class=\"data row9 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row10_col0\" class=\"data row10 col0\" >Whole Dataset Drift</td>\n      <td id=\"T_b5094_row10_col1\" class=\"data row10 col1\" >DeepchecksNotSupportedError: There are no features defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row11_col0\" class=\"data row11 col0\" >Train Test Label Drift</td>\n      <td id=\"T_b5094_row11_col1\" class=\"data row11 col1\" >DeepchecksNotSupportedError: There is no label defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row12_col0\" class=\"data row12 col0\" >Train Test Feature Drift</td>\n      <td id=\"T_b5094_row12_col1\" class=\"data row12 col1\" >DeepchecksNotSupportedError: There are no features defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row13_col0\" class=\"data row13 col0\" >Model Inference Time - Test Dataset</td>\n      <td id=\"T_b5094_row13_col1\" class=\"data row13 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row14_col0\" class=\"data row14 col0\" >Model Inference Time - Train Dataset</td>\n      <td id=\"T_b5094_row14_col1\" class=\"data row14 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row15_col0\" class=\"data row15 col0\" >Label Ambiguity - Test Dataset</td>\n      <td id=\"T_b5094_row15_col1\" class=\"data row15 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row16_col0\" class=\"data row16 col0\" >Boosting Overfit</td>\n      <td id=\"T_b5094_row16_col1\" class=\"data row16 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row17_col0\" class=\"data row17 col0\" >Confusion Matrix Report - Train Dataset</td>\n      <td id=\"T_b5094_row17_col1\" class=\"data row17 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row18_col0\" class=\"data row18 col0\" >Unused Features</td>\n      <td id=\"T_b5094_row18_col1\" class=\"data row18 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row19_col0\" class=\"data row19 col0\" >Performance Report</td>\n      <td id=\"T_b5094_row19_col1\" class=\"data row19 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row20_col0\" class=\"data row20 col0\" >Roc Report - Train Dataset</td>\n      <td id=\"T_b5094_row20_col1\" class=\"data row20 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row21_col0\" class=\"data row21 col0\" >Roc Report - Test Dataset</td>\n      <td id=\"T_b5094_row21_col1\" class=\"data row21 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row22_col0\" class=\"data row22 col0\" >Simple Model Comparison</td>\n      <td id=\"T_b5094_row22_col1\" class=\"data row22 col1\" >DeepchecksNotSupportedError: There is no label defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row23_col0\" class=\"data row23 col0\" >Model Error Analysis</td>\n      <td id=\"T_b5094_row23_col1\" class=\"data row23 col1\" >DeepchecksNotSupportedError: There is no label defined to use. Did you pass a DataFrame instead of a Dataset?</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row24_col0\" class=\"data row24 col0\" >Confusion Matrix Report - Test Dataset</td>\n      <td id=\"T_b5094_row24_col1\" class=\"data row24 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row25_col0\" class=\"data row25 col0\" >Calibration Score - Train Dataset</td>\n      <td id=\"T_b5094_row25_col1\" class=\"data row25 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row26_col0\" class=\"data row26 col0\" >Calibration Score - Test Dataset</td>\n      <td id=\"T_b5094_row26_col1\" class=\"data row26 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row27_col0\" class=\"data row27 col0\" >Regression Systematic Error - Train Dataset</td>\n      <td id=\"T_b5094_row27_col1\" class=\"data row27 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row28_col0\" class=\"data row28 col0\" >Regression Systematic Error - Test Dataset</td>\n      <td id=\"T_b5094_row28_col1\" class=\"data row28 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row29_col0\" class=\"data row29 col0\" >Regression Error Distribution - Train Dataset</td>\n      <td id=\"T_b5094_row29_col1\" class=\"data row29 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row30_col0\" class=\"data row30 col0\" >Regression Error Distribution - Test Dataset</td>\n      <td id=\"T_b5094_row30_col1\" class=\"data row30 col1\" >Got error when trying to predict with model on dataset: at least one array or dtype is required</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row31_col0\" class=\"data row31 col0\" >Special Characters - Test Dataset</td>\n      <td id=\"T_b5094_row31_col1\" class=\"data row31 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row32_col0\" class=\"data row32 col0\" >Special Characters - Train Dataset</td>\n      <td id=\"T_b5094_row32_col1\" class=\"data row32 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row33_col0\" class=\"data row33 col0\" >String Length Out Of Bounds - Test Dataset</td>\n      <td id=\"T_b5094_row33_col1\" class=\"data row33 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row34_col0\" class=\"data row34 col0\" >String Length Out Of Bounds - Train Dataset</td>\n      <td id=\"T_b5094_row34_col1\" class=\"data row34 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row35_col0\" class=\"data row35 col0\" >Data Duplicates - Test Dataset</td>\n      <td id=\"T_b5094_row35_col1\" class=\"data row35 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row36_col0\" class=\"data row36 col0\" >String Mismatch - Test Dataset</td>\n      <td id=\"T_b5094_row36_col1\" class=\"data row36 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row37_col0\" class=\"data row37 col0\" >Mixed Data Types - Train Dataset</td>\n      <td id=\"T_b5094_row37_col1\" class=\"data row37 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row38_col0\" class=\"data row38 col0\" >Mixed Data Types - Test Dataset</td>\n      <td id=\"T_b5094_row38_col1\" class=\"data row38 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row39_col0\" class=\"data row39 col0\" >String Mismatch Comparison</td>\n      <td id=\"T_b5094_row39_col1\" class=\"data row39 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row40_col0\" class=\"data row40 col0\" >Mixed Nulls - Test Dataset</td>\n      <td id=\"T_b5094_row40_col1\" class=\"data row40 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row41_col0\" class=\"data row41 col0\" >Mixed Nulls - Train Dataset</td>\n      <td id=\"T_b5094_row41_col1\" class=\"data row41 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row42_col0\" class=\"data row42 col0\" >Dominant Frequency Change</td>\n      <td id=\"T_b5094_row42_col1\" class=\"data row42 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row43_col0\" class=\"data row43 col0\" >String Mismatch - Train Dataset</td>\n      <td id=\"T_b5094_row43_col1\" class=\"data row43 col1\" >Nothing found</td>\n    </tr>\n    <tr>\n      <td id=\"T_b5094_row44_col0\" class=\"data row44 col0\" >Category Mismatch Train Test</td>\n      <td id=\"T_b5094_row44_col1\" class=\"data row44 col1\" >Nothing found</td>\n    </tr>\n  </tbody>\n</table>\n"
+      }
+    },
+    "6026fef1d4ae4e518a529c5ee8de2501": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "bc9c6b983a6b4dff99de9797279ecd99": {
+      "model_name": "DescriptionStyleModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "state": {}
+    },
+    "0197bb6ad11749df81ecc37188f82540": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "c82f45983db843019ae72ce6b8548f8e": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "e6529c8b733e4df0a40710429f881532": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    },
+    "5c4845bad02040008b66a4ec97c842e1": {
+      "model_name": "LayoutModel",
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "state": {}
+    }
+  }
+}
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"version_major": 2, "version_minor": 0, "model_id": "e02322c472ad415595b9e9781dcf9ae6"}
+</script>
+
+</body>
+</html>
